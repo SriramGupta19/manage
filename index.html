@@ -3,45 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Task Manager Pro</title>
+    <title>Task Manager</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
     <style>
         :root {
-            /* Light Theme (Default) */
             --bg: #F9FAFB;
-            --surface: #FFFFFF;
             --text: #1F2937;
-            --text-sec: #6B7280;
-            --border: #E5E7EB;
-            --input-bg: #FFFFFF;
             
-            /* Priority Colors */
+            /* Priority Theme Colors (Backgrounds & Borders) */
             --bg-high: #FEF2F2; --border-high: #FECACA; --text-high: #991B1B;
             --bg-med:  #FFFBEB; --border-med:  #FDE68A; --text-med:  #92400E;
             --bg-low:  #EFF6FF; --border-low:  #BFDBFE; --text-low:  #1E40AF;
 
-            --header-height: 50px;
+            --header-height: 60px;
         }
 
-        /* Dark Theme overrides */
-        [data-theme="dark"] {
-            --bg: #111827;
-            --surface: #1F2937;
-            --text: #F9FAFB;
-            --text-sec: #9CA3AF;
-            --border: #374151;
-            --input-bg: #374151;
-            
-            /* Darker muted priority colors */
-            --bg-high: #450a0a; --border-high: #7f1d1d; --text-high: #fecaca;
-            --bg-med:  #451a03; --border-med:  #78350f; --text-med:  #fde68a;
-            --bg-low:  #172554; --border-low:  #1e3a8a; --text-low:  #bfdbfe;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Inter', sans-serif;
@@ -51,141 +31,132 @@
             height: 100vh;
             display: flex; flex-direction: column;
             overflow: hidden;
-            transition: background 0.3s, color 0.3s;
         }
 
         /* --- HEADER --- */
         header {
             height: var(--header-height);
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
+            background: white; border-bottom: 1px solid #E5E7EB;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 10px; flex-shrink: 0; z-index: 50;
+            padding: 0 16px; flex-shrink: 0; z-index: 50;
         }
-        
-        .header-left { display: flex; align-items: center; gap: 10px; flex: 1; }
-        h1 { font-family: 'Poppins', sans-serif; font-size: 1rem; margin: 0; white-space: nowrap; }
+        h1 { font-family: 'Poppins', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 600; }
+        .logout-btn { background: #F3F4F6; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; cursor: pointer; }
 
-        .search-container {
-            flex: 1; max-width: 200px; display: none; /* Hidden by default */
-        }
-        .search-container.active { display: block; animation: fadeIn 0.2s; }
-        .search-input {
-            width: 100%; background: var(--bg); border: 1px solid var(--border);
-            color: var(--text); padding: 4px 8px; border-radius: 6px; font-size: 0.85rem;
-        }
-
-        .header-actions { display: flex; gap: 4px; }
-        .icon-btn {
-            background: transparent; border: none; color: var(--text);
-            width: 32px; height: 32px; border-radius: 6px;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-        }
-        .icon-btn:hover { background: rgba(0,0,0,0.05); }
-
-        /* --- BOARD --- */
+        /* --- BOARD (3 Columns) --- */
         .board {
-            display: flex; flex: 1;
-            gap: 2px; /* Super tight gap */
-            padding: 2px;
+            display: flex;
+            flex: 1;
+            gap: 4px; /* Reduced Gap */
+            padding: 4px;
             height: calc(100vh - var(--header-height));
             overflow: hidden;
         }
 
         .column {
-            flex: 1; display: flex; flex-direction: column;
-            background: rgba(0,0,0,0.02);
-            border-radius: 4px; overflow: hidden; min-width: 0;
+            flex: 1;
+            display: flex; flex-direction: column;
+            border-radius: 8px;
+            /* Subtle indication of zones since headers are gone */
+            background: rgba(0,0,0,0.02); 
+            overflow: hidden;
+            min-width: 0;
         }
 
         .task-list {
-            flex: 1; overflow-y: auto; padding: 2px; padding-bottom: 80px;
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px;
+            /* Ensure bottom of list is accessible */
+            padding-bottom: 80px; 
         }
 
-        /* --- CARD --- */
+        /* --- COLORED CARDS --- */
         .card {
-            border-radius: 8px; padding: 10px; margin-bottom: 4px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column;
-            min-height: 120px; /* Tall cards */
-            position: relative; cursor: grab;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            display: flex; 
+            flex-direction: column;
+            min-height: 110px; /* Increased vertical length */
+            position: relative;
+            cursor: grab;
             border: 1px solid transparent;
             transition: transform 0.1s;
         }
-        .card:active { transform: scale(0.98); }
-        .card.completed { opacity: 0.5; filter: grayscale(1); }
+        
+        .card:active { cursor: grabbing; transform: scale(0.98); }
+        .card.completed { opacity: 0.5; filter: grayscale(0.8); }
+        .card.completed .task-name { text-decoration: line-through; }
+
+        /* Color Variations */
         .card-high { background-color: var(--bg-high); border-color: var(--border-high); }
         .card-med  { background-color: var(--bg-med);  border-color: var(--border-med); }
         .card-low  { background-color: var(--bg-low);  border-color: var(--border-low); }
 
-        .card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 6px; }
-        .task-name { font-weight: 600; font-size: 0.9rem; line-height: 1.3; color: var(--text); word-wrap: break-word; }
-        
-        /* Tags */
-        .tags-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
-        .tag { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.1); color: var(--text); font-weight: 500; }
-
-        /* Subtask Progress */
-        .progress-row { font-size: 0.7rem; color: var(--text-sec); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
-        .progress-bar { flex: 1; height: 4px; background: rgba(0,0,0,0.1); border-radius: 2px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--text); width: 0%; transition: width 0.3s; }
-
-        .info-row { font-size: 0.7rem; color: var(--text-sec); display: flex; align-items: center; gap: 4px; margin-top: 2px; }
-        
-        .card-footer { margin-top: auto; display: flex; justify-content: flex-end; padding-top: 8px; }
-        .btn-group { display: flex; gap: 6px; }
-        .circle-btn {
-            width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1);
-            background: var(--surface); display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 12px;
+        .task-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            color: #111;
+            word-wrap: break-word;
         }
 
-        /* --- FAB & MODAL --- */
-        .fab { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; background: var(--text); color: var(--surface); border-radius: 50%; font-size: 24px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 90; }
+        .info-row {
+            font-size: 0.75rem;
+            color: #555;
+            margin-bottom: 4px;
+            display: flex; align-items: center; gap: 4px;
+        }
+
+        /* Push footer to bottom so it never overlaps text */
+        .card-footer {
+            margin-top: auto; 
+            display: flex; 
+            justify-content: flex-end;
+            padding-top: 10px;
+        }
+
+        /* Buttons */
+        .btn-group { display: flex; gap: 8px; }
+        .circle-btn {
+            width: 28px; height: 28px;
+            border-radius: 50%; border: 1px solid rgba(0,0,0,0.1);
+            background: white;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .btn-del { color: #DC2626; }
+        .btn-chk { color: #059669; }
+
+        /* --- MODAL & LOGIN --- */
+        #login-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: #4F46E5; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; z-index:100; }
+        .google-btn { background:white; color:#333; padding:12px 20px; border-radius:50px; border:none; font-weight:600; cursor:pointer; }
+        
+        .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: #111; color: white; border-radius: 50%; font-size: 28px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 90; }
 
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:200; align-items:center; justify-content:center; }
-        .modal-content { background: var(--surface); color: var(--text); width: 90%; max-width: 350px; padding: 20px; border-radius: 12px; max-height: 90vh; overflow-y: auto; }
-        
-        label { font-size: 0.75rem; font-weight: 600; color: var(--text-sec); display: block; margin-bottom: 4px; margin-top: 10px; }
-        input, select { width: 100%; padding: 8px; background: var(--input-bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; }
-        
-        .subtask-input-group { display: flex; gap: 5px; margin-bottom: 5px; }
-        .subtask-list { margin-bottom: 10px; }
-        .subtask-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; margin-bottom: 4px; }
-        
-        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
-        .btn-save { background: var(--text); color: var(--surface); border: none; padding: 8px 16px; border-radius: 6px; }
-
-        /* Login */
-        #login-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; z-index:100; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content { background:white; width:85%; max-width:320px; padding:20px; border-radius:16px; }
+        label { font-size: 0.75rem; font-weight: 600; color: #666; display: block; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+        .btn-save { background: #111; color: white; border: none; padding: 10px 20px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h1 style="font-size:2rem; margin-bottom:20px">Task Manager</h1>
-        <button onclick="signIn()" style="background:white; color:#333; padding:12px 24px; border-radius:50px; border:none; font-weight:600; cursor:pointer;">Sign in with Google</button>
+        <h1 style="font-size:2rem; margin-bottom:10px">Task Manager</h1>
+        <button class="google-btn" onclick="signIn()">Sign in with Google</button>
     </div>
 
     <div id="app" style="display:none">
         <header>
-            <div class="header-left">
-                <h1 id="greeting">Tasks</h1>
-            </div>
-            
-            <div id="searchBox" class="search-container">
-                <input type="text" id="searchInput" class="search-input" placeholder="Search tasks..." onkeyup="filterTasks()">
-            </div>
-
-            <div class="header-actions">
-                <button class="icon-btn" onclick="toggleSearch()" title="Search">🔍</button>
-                <button class="icon-btn" onclick="archiveCompleted()" title="Archive Completed">📦</button>
-                <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme">🌗</button>
-                <button class="icon-btn" onclick="logout()" title="Logout">🚪</button>
-            </div>
+            <h1 id="greeting">Hi</h1>
+            <button class="logout-btn" onclick="logout()">Logout</button>
         </header>
 
         <div class="board">
@@ -199,55 +170,32 @@
 
     <div id="taskModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin-top:0; font-size:1.1rem">Edit Task</h2>
+            <h2 style="margin-top:0">Task Details</h2>
             <input type="hidden" id="taskId">
             
-            <label>Name</label>
+            <label>Task Name</label>
             <input type="text" id="taskName">
 
-            <div style="display:flex; gap:10px;">
-                <div style="flex:1">
-                    <label>Due Date</label>
-                    <input type="date" id="taskDate">
-                </div>
-                <div style="flex:1">
-                    <label>Priority</label>
-                    <select id="taskPriority">
-                        <option value="high">High</option>
-                        <option value="med">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
-                </div>
-            </div>
+            <label>Due Date</label>
+            <input type="date" id="taskDate">
 
-            <div style="display:flex; gap:10px;">
-                <div style="flex:1">
-                    <label>Status</label>
-                    <select id="taskStatus">
-                        <option value="To Do">To Do</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Done">Done</option>
-                    </select>
-                </div>
-                <div style="flex:1; display:flex; align-items:end; padding-bottom:10px;">
-                    <label style="display:flex; align-items:center; gap:5px; cursor:pointer;">
-                        <input type="checkbox" id="taskRecurring"> Repeat Weekly
-                    </label>
-                </div>
-            </div>
+            <label>Current Status</label>
+            <select id="taskStatus">
+                <option value="Not Started">Not Started</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Waiting">Waiting</option>
+                <option value="Almost Done">Almost Done</option>
+            </select>
 
-            <label>Tags (comma separated)</label>
-            <input type="text" id="taskTags" placeholder="e.g. Work, Lab">
-
-            <label>Subtasks</label>
-            <div id="subtaskList" class="subtask-list"></div>
-            <div class="subtask-input-group">
-                <input type="text" id="newSubtask" placeholder="Add step...">
-                <button onclick="addSubtask()" style="padding:0 10px;">+</button>
-            </div>
+            <label>Priority (Column)</label>
+            <select id="taskPriority">
+                <option value="high">High (Red)</option>
+                <option value="med">Medium (Yellow)</option>
+                <option value="low">Low (Blue)</option>
+            </select>
 
             <div class="modal-btns">
-                <button onclick="closeModal()" style="background:transparent; border:none; color:var(--text-sec)">Cancel</button>
+                <button onclick="closeModal()" style="background:none; border:none; color:#666">Cancel</button>
                 <button class="btn-save" onclick="saveTask()">Save</button>
             </div>
         </div>
@@ -268,232 +216,30 @@
           appId: "1:664846676694:web:119e02bf56a8d5b9db4f77"
         };
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(); const db = firebase.firestore();
+        const auth = firebase.auth();
+        const db = firebase.firestore();
         db.enablePersistence().catch(()=>{});
 
-        let currentUser = null, unsubscribe = null, currentSubtasks = [], allTasks = [];
+        let currentUser = null, unsubscribe = null;
 
-        // --- AUTH ---
         auth.onAuthStateChanged(u => {
             if(u){ 
-                currentUser=u; document.getElementById('login-screen').style.display='none'; document.getElementById('app').style.display='block';
-                document.getElementById('greeting').innerText = u.displayName ? u.displayName.split(' ')[0] : 'User';
-                
-                // Load theme
-                if(localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
-                
-                loadTasks(); initDrag();
+                currentUser=u; 
+                document.getElementById('login-screen').style.display='none'; 
+                document.getElementById('app').style.display='block'; 
+                document.getElementById('greeting').innerText = u.displayName ? u.displayName.split(' ')[0] : 'User'; 
+                loadTasks(); 
+                initDrag(); 
             } else { 
-                currentUser=null; document.getElementById('login-screen').style.display='flex'; document.getElementById('app').style.display='none';
+                currentUser=null; 
+                document.getElementById('login-screen').style.display='flex'; 
+                document.getElementById('app').style.display='none'; 
             }
         });
 
-        // FIXED LOGIN FUNCTION
-        function signIn() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider)
-                .then((result) => {
-                    console.log("Logged in:", result.user);
-                })
-                .catch((error) => {
-                    alert("Login Failed: " + error.message);
-                    console.error("Login Error:", error);
-                });
-        }
-
+        function signIn(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
         function logout(){ auth.signOut(); }
 
-        // --- THEME ---
-        function toggleTheme() {
-            if(document.body.getAttribute('data-theme') === 'dark') {
-                document.body.removeAttribute('data-theme'); localStorage.setItem('theme', 'light');
-            } else {
-                document.body.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark');
-            }
-        }
-
-        // --- SEARCH ---
-        function toggleSearch() {
-            const el = document.getElementById('searchBox');
-            el.classList.toggle('active');
-            if(el.classList.contains('active')) document.getElementById('searchInput').focus();
-        }
-        function filterTasks() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(card => {
-                const text = card.innerText.toLowerCase();
-                card.style.display = text.includes(query) ? 'flex' : 'none';
-            });
-        }
-
-        // --- ARCHIVE ---
-        function archiveCompleted() {
-            if(!confirm("Archive all completed tasks?")) return;
-            const batch = db.batch();
-            allTasks.filter(t => t.completed).forEach(t => {
-                const ref = db.collection('tasks').doc(t.id);
-                batch.update(ref, { archived: true });
-            });
-            batch.commit().then(() => alert("Archived!"));
-        }
-
-        // --- LOGIC ---
-        function loadTasks(){
-            if(unsubscribe) unsubscribe();
-            // Filter out archived tasks
-            unsubscribe = db.collection('tasks')
-                .where('uid','==',currentUser.uid)
-                .where('archived','!=',true) 
-                .onSnapshot(snap => {
-                    allTasks = [];
-                    snap.forEach(d => {
-                        const data = d.data();
-                        if(!data.archived) allTasks.push({id:d.id, ...data});
-                    });
-                    renderBoard();
-                });
-        }
-
-        function renderBoard() {
-            // Sort
-            allTasks.sort((a,b) => (a.completed===b.completed) ? (new Date(a.dueDate||'9999') - new Date(b.dueDate||'9999')) : (a.completed?1:-1));
-            
-            ['high','med','low'].forEach(p => document.getElementById('list-'+p).innerHTML='');
-            allTasks.forEach(t => renderTask(t));
-            filterTasks(); // Re-apply search if active
-        }
-
-        function renderTask(t){
-            const d = document.createElement('div');
-            d.className = `card card-${t.priority} ${t.completed?'completed':''}`;
-            d.dataset.id = t.id;
-            d.onclick = (e) => { if(!e.target.closest('button')) openModal(t); };
-
-            // Date
-            const dateStr = t.dueDate ? new Date(t.dueDate).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '';
-            
-            // Tags HTML
-            let tagsHtml = '';
-            if(t.tags && t.tags.length > 0) {
-                tagsHtml = `<div class="tags-row">${t.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`;
-            }
-
-            // Subtask Progress
-            let progressHtml = '';
-            if(t.subtasks && t.subtasks.length > 0) {
-                const done = t.subtasks.filter(s => s.done).length;
-                const total = t.subtasks.length;
-                const pct = (done/total)*100;
-                progressHtml = `
-                    <div class="progress-row">
-                        <span>Checklist: ${done}/${total}</span>
-                        <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-                    </div>`;
-            }
-
-            // Recurring Icon
-            const recurIcon = t.recurring ? '🔄 ' : '';
-
-            d.innerHTML = `
-                <div class="card-header">
-                    <div class="task-name">${t.name}</div>
-                </div>
-                ${tagsHtml}
-                ${progressHtml}
-                <div class="info-row">
-                    <span>${recurIcon}${dateStr ? '📅 '+dateStr : ''}</span>
-                    <span style="margin-left:auto">${t.status || 'To Do'}</span>
-                </div>
-                <div class="card-footer">
-                    <div class="btn-group">
-                        <button class="circle-btn btn-del" onclick="delTask('${t.id}')">✕</button>
-                        <button class="circle-btn btn-chk" style="color:${t.completed?'#aaa':'#059669'}" onclick="toggle('${t.id}')">✓</button>
-                    </div>
-                </div>
-            `;
-            document.getElementById('list-'+t.priority).appendChild(d);
-        }
-
-        // --- CRUD ---
-        function saveTask(){
-            const id=document.getElementById('taskId').value;
-            const n=document.getElementById('taskName').value;
-            if(!n) return;
-
-            const tagsStr = document.getElementById('taskTags').value;
-            const tags = tagsStr ? tagsStr.split(',').map(s=>s.trim()).filter(s=>s) : [];
-
-            const data = { 
-                uid: currentUser.uid, 
-                name: n, 
-                dueDate: document.getElementById('taskDate').value,
-                priority: document.getElementById('taskPriority').value,
-                status: document.getElementById('taskStatus').value,
-                recurring: document.getElementById('taskRecurring').checked,
-                tags: tags,
-                subtasks: currentSubtasks,
-                archived: false
-            };
-
-            if(id) db.collection('tasks').doc(id).update(data);
-            else { 
-                data.completed = false; 
-                data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
-                db.collection('tasks').add(data); 
-            }
-            closeModal();
-        }
-
-        function toggle(id){ 
-            const t = allTasks.find(x => x.id === id);
-            if(!t) return;
-            
-            const newStatus = !t.completed;
-            
-            // RECURRING LOGIC: If marking complete AND is recurring
-            if(newStatus && t.recurring) {
-                // Clone task
-                const nextDate = new Date(); 
-                nextDate.setDate(nextDate.getDate() + 7); // Add 7 days
-                
-                const newTask = { ...t };
-                delete newTask.id; // remove ID
-                newTask.completed = false;
-                newTask.dueDate = nextDate.toISOString().split('T')[0];
-                newTask.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-                
-                db.collection('tasks').add(newTask);
-            }
-
-            db.collection('tasks').doc(id).update({completed: newStatus}); 
-        }
-
-        function delTask(id){ if(confirm('Delete?')) db.collection('tasks').doc(id).delete(); }
-
-        // --- SUBTASKS UI ---
-        function renderSubtasksInModal() {
-            const list = document.getElementById('subtaskList');
-            list.innerHTML = '';
-            currentSubtasks.forEach((st, idx) => {
-                const div = document.createElement('div');
-                div.className = 'subtask-item';
-                div.innerHTML = `
-                    <input type="checkbox" ${st.done ? 'checked' : ''} onchange="toggleSubtask(${idx})">
-                    <span style="flex:1; text-decoration:${st.done?'line-through':''}">${st.text}</span>
-                    <button onclick="removeSubtask(${idx})" style="border:none;background:none;color:red;">×</button>
-                `;
-                list.appendChild(div);
-            });
-        }
-        function addSubtask() {
-            const val = document.getElementById('newSubtask').value;
-            if(val) { currentSubtasks.push({text:val, done:false}); document.getElementById('newSubtask').value=''; renderSubtasksInModal(); }
-        }
-        function removeSubtask(idx) { currentSubtasks.splice(idx, 1); renderSubtasksInModal(); }
-        function toggleSubtask(idx) { currentSubtasks[idx].done = !currentSubtasks[idx].done; renderSubtasksInModal(); }
-
-        // --- DRAG ---
         function initDrag(){
             ['list-high','list-med','list-low'].forEach(id=>{
                 new Sortable(document.getElementById(id), { group:'shared', animation:150, delay:100, delayOnTouchOnly:true,
@@ -505,18 +251,79 @@
             });
         }
 
+        function loadTasks(){
+            if(unsubscribe) unsubscribe();
+            unsubscribe = db.collection('tasks').where('uid','==',currentUser.uid).onSnapshot(snap => {
+                let tasks=[]; snap.forEach(d=>tasks.push({id:d.id, ...d.data()}));
+                tasks.sort((a,b)=>(a.completed===b.completed)?(new Date(a.dueDate||'9999')-new Date(b.dueDate||'9999')):(a.completed?1:-1));
+                ['high','med','low'].forEach(p=>document.getElementById('list-'+p).innerHTML='');
+                tasks.forEach(t=>renderTask(t));
+            });
+        }
+
+        function renderTask(t){
+            const d = document.createElement('div');
+            // Add priority class for coloring
+            d.className = `card card-${t.priority} ${t.completed?'completed':''}`;
+            d.dataset.id = t.id;
+            d.onclick = (e) => { if(!e.target.closest('button')) openModal(t); };
+
+            const dateStr = t.dueDate ? new Date(t.dueDate).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : 'No Date';
+            const statusStr = t.status || "Not Started";
+
+            d.innerHTML = `
+                <div class="task-name">${t.name}</div>
+                
+                <div class="info-row">
+                    <span>📅</span> <span>${dateStr}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span>📌</span> <strong>${statusStr}</strong>
+                </div>
+
+                <div class="card-footer">
+                    <div class="btn-group">
+                        <button class="circle-btn btn-del" onclick="delTask('${t.id}')">✕</button>
+                        <button class="circle-btn btn-chk" onclick="toggle('${t.id}',${!t.completed})">✓</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('list-'+t.priority).appendChild(d);
+        }
+
+        function saveTask(){
+            const id=document.getElementById('taskId').value;
+            const n=document.getElementById('taskName').value;
+            if(!n) return;
+
+            const data = { 
+                uid: currentUser.uid, 
+                name: n, 
+                dueDate: document.getElementById('taskDate').value,
+                priority: document.getElementById('taskPriority').value,
+                status: document.getElementById('taskStatus').value // New Status Field
+            };
+
+            if(id) db.collection('tasks').doc(id).update(data);
+            else { 
+                data.completed = false; 
+                data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
+                db.collection('tasks').add(data); 
+            }
+            closeModal();
+        }
+
+        function delTask(id){ if(confirm('Delete?')) db.collection('tasks').doc(id).delete(); }
+        function toggle(id,s){ db.collection('tasks').doc(id).update({completed:s}); }
+        
         function openModal(t=null){
             document.getElementById('taskId').value=t?t.id:'';
             document.getElementById('taskName').value=t?t.name:'';
             document.getElementById('taskDate').value=t?t.dueDate:'';
             document.getElementById('taskPriority').value=t?t.priority:'high';
-            document.getElementById('taskStatus').value=t?t.status||'To Do';
-            document.getElementById('taskRecurring').checked=t?t.recurring:false;
-            document.getElementById('taskTags').value=t && t.tags ? t.tags.join(', ') : '';
+            document.getElementById('taskStatus').value=t?t.status:'Not Started';
             
-            currentSubtasks = t && t.subtasks ? JSON.parse(JSON.stringify(t.subtasks)) : [];
-            renderSubtasksInModal();
-
             document.getElementById('taskModal').style.display='flex';
             if(!t) setTimeout(()=>document.getElementById('taskName').focus(),100);
         }
