@@ -3,172 +3,223 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Task Flow</title>
+    <title>Task Manager</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
     <style>
         :root {
-            --bg-body: #F9FAFB;
-            --col-high: #DC2626; --col-high-bg: #FEF2F2;
-            --col-med: #D97706;  --col-med-bg: #FFFBEB;
-            --col-low: #2563EB;  --col-low-bg: #EFF6FF;
-            --text-main: #111827;
-            --radius: 8px;
+            --bg: #F3F4F6;
+            --surface: #FFFFFF;
+            --text: #1F2937;
+            --text-light: #6B7280;
+            
+            /* Priority Colors */
+            --red: #EF4444; --red-bg: #FEF2F2;
+            --orange: #F59E0B; --orange-bg: #FFFBEB;
+            --blue: #3B82F6; --blue-bg: #EFF6FF;
+
+            --radius: 12px;
+            --header-height: 60px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-main);
+            background-color: var(--bg);
+            color: var(--text);
             margin: 0;
             padding: 0;
-            height: 100vh;
+            height: 100vh; /* Full screen height */
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Prevent body scroll, layout handles it */
+            overflow: hidden; /* Prevent page-level scroll */
         }
 
-        /* LOGIN (Fullscreen) */
-        #login-screen {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            color: white; z-index: 1000;
-        }
-        .google-btn {
-            background: white; color: #333; border: none; padding: 12px 24px;
-            border-radius: 50px; font-weight: 600; cursor: pointer; display: flex; gap: 10px; align-items: center;
-        }
-
-        /* HEADER */
+        /* --- 1. HEADER (Fixed Top) --- */
         header {
-            padding: 10px 15px; background: white; border-bottom: 1px solid #E5E7EB;
-            display: flex; justify-content: space-between; align-items: center;
-            flex-shrink: 0;
+            height: var(--header-height);
+            background: var(--surface);
+            border-bottom: 1px solid #E5E7EB;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            flex-shrink: 0; /* Never shrink */
+            z-index: 50;
         }
-        header h1 { margin: 0; font-family: 'Poppins', sans-serif; font-size: 1.1rem; }
-        .logout-btn { background: none; border: none; font-size: 0.8rem; color: #666; }
 
-        /* BOARD (The 3 Column Layout) */
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .logout-btn {
+            background: #F3F4F6;
+            color: var(--text);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        /* --- 2. BOARD (The 3 Parallel Columns) --- */
         .board {
-            flex-grow: 1;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr; /* FORCE 3 COLUMNS */
-            gap: 4px; /* Tight gap */
-            padding: 4px;
-            overflow-y: auto; /* Allow vertical scrolling */
-            height: 100%;
+            display: flex; /* Flex is better for equal columns than grid here */
+            flex: 1; /* Take remaining height */
+            gap: 8px;
+            padding: 8px;
+            height: calc(100vh - var(--header-height));
+            overflow: hidden; /* Hide overflow outside columns */
         }
 
         .column {
+            flex: 1; /* Each column takes 33% */
             background: #fff;
             border-radius: var(--radius);
             display: flex;
             flex-direction: column;
-            min-height: 100px; /* Ensure drop zone exists */
+            overflow: hidden; /* Ensure list scrolls inside */
+            border: 1px solid #E5E7EB;
+            min-width: 0; /* Allows text truncation in flex */
         }
 
-        /* COMPACT HEADERS */
+        /* Column Headers */
         .col-header {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 600;
-            font-size: 0.75rem; /* Small text */
-            text-transform: uppercase;
             text-align: center;
-            padding: 8px 2px;
-            border-radius: var(--radius) var(--radius) 0 0;
-            position: sticky; top: 0; z-index: 10; /* Keep header visible */
+            padding: 10px 4px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
-        #col-high .col-header { background: var(--col-high-bg); color: var(--col-high); }
-        #col-med  .col-header { background: var(--col-med-bg);  color: var(--col-med); }
-        #col-low  .col-header { background: var(--col-low-bg);  color: var(--col-low); }
+        #col-high .col-header { background: var(--red-bg); color: var(--red); }
+        #col-med  .col-header { background: var(--orange-bg); color: var(--orange); }
+        #col-low  .col-header { background: var(--blue-bg); color: var(--blue); }
 
+        /* The Scrollable List Area */
         .task-list {
-            padding: 4px;
-            flex-grow: 1;
+            flex: 1;
+            overflow-y: auto; /* Vertical scroll ONLY here */
+            padding: 6px;
         }
+        
+        /* Scrollbar styling for cleanliness */
+        .task-list::-webkit-scrollbar { width: 4px; }
+        .task-list::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 4px; }
 
-        /* COMPACT CARDS */
+        /* --- 3. CARDS --- */
         .card {
             background: white;
             border: 1px solid #E5E7EB;
-            border-radius: 6px;
-            padding: 8px; /* Tight padding */
-            margin-bottom: 6px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            font-size: 0.8rem; /* Small base font */
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            cursor: grab;
+            font-size: 0.85rem;
+            position: relative;
         }
-        
+
+        .card:active { cursor: grabbing; transform: scale(0.98); }
         .card.completed { opacity: 0.5; }
         .card.completed .task-name { text-decoration: line-through; }
-        
+
         .task-name {
-            font-weight: 600; margin-bottom: 4px; line-height: 1.2;
-            word-wrap: break-word; /* Prevent overflow */
+            font-weight: 500;
+            margin-bottom: 6px;
+            line-height: 1.3;
+            word-break: break-word; /* Crucial for narrow columns */
         }
 
-        /* Tiny Controls for Mobile */
-        .task-footer {
-            display: flex; flex-direction: column; gap: 4px;
-            margin-top: 6px;
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 4px;
         }
 
-        .date-text { font-size: 0.65rem; color: #666; font-weight: 500; }
-        .date-text.overdue { color: var(--col-high); }
-        .date-text.today { color: var(--col-med); }
+        /* Tiny Date */
+        .date { font-size: 0.7rem; color: #9CA3AF; }
+        .date.overdue { color: var(--red); font-weight: 600; }
+        .date.today { color: var(--orange); font-weight: 600; }
 
-        .card-actions {
-            display: flex; justify-content: flex-end; gap: 6px;
-        }
-
-        .mini-btn {
-            width: 20px; height: 20px; border-radius: 4px; border: none;
+        /* Card Actions */
+        .actions { display: flex; gap: 4px; }
+        .act-btn {
+            width: 24px; height: 24px;
+            border-radius: 4px; border: none;
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px; cursor: pointer;
+            cursor: pointer; font-size: 14px;
         }
-        .btn-check { background: #ECFDF5; color: #059669; }
-        .btn-del { background: #FEF2F2; color: #DC2626; }
+        .btn-del { background: #FEF2F2; color: var(--red); }
+        .btn-chk { background: #ECFDF5; color: #10B981; }
+
+        /* --- LOGIN & MODALS --- */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: white; z-index: 999;
+        }
+        .google-btn {
+            background: white; color: #333; padding: 12px 24px; border-radius: 50px;
+            border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;
+        }
 
         /* FAB */
         .fab {
             position: fixed; bottom: 20px; right: 20px;
-            width: 50px; height: 50px; border-radius: 50%;
-            background: #4F46E5; color: white; border: none;
-            font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            width: 52px; height: 52px; border-radius: 50%;
+            background: var(--text); color: white; border: none;
+            font-size: 26px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
             display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 100;
         }
 
-        /* MODAL */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 85%; max-width: 350px; }
-        input, select { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 6px; }
-        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; }
-        .btn-save { background: #4F46E5; color: white; padding: 8px 16px; border: none; border-radius: 6px; }
-
-        /* Desktop Adjustments */
-        @media (min-width: 768px) {
-            .board { gap: 15px; padding: 20px; }
-            .card { padding: 12px; font-size: 0.95rem; }
-            .col-header { font-size: 1rem; padding: 12px; }
-            .task-footer { flex-direction: row; justify-content: space-between; align-items: center; }
+        /* Modal */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 200;
+            align-items: center; justify-content: center;
         }
+        .modal-content {
+            background: white; width: 85%; max-width: 320px;
+            padding: 20px; border-radius: 16px;
+        }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-size: 0.75rem; color: var(--text-light); margin-bottom: 4px; font-weight: 600; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 0.95rem; }
+        
+        .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+        .btn-cancel { background: none; border: none; color: var(--text-light); cursor: pointer; }
+        .btn-save { background: var(--text); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h1 style="font-family:'Poppins',sans-serif;">Task Flow</h1>
-        <button class="google-btn" onclick="signIn()">Sign in with Google</button>
+        <h1 style="font-size: 2rem; margin-bottom: 10px;">Task Manager</h1>
+        <button class="google-btn" onclick="signIn()">
+             Sign in with Google
+        </button>
     </div>
 
     <div id="app" style="display: none;">
         <header>
-            <h1 id="greeting">Hi</h1>
+            <h1 id="greeting">Loading...</h1>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </header>
 
@@ -192,17 +243,27 @@
 
     <div id="taskModal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-top:0">New Task</h3>
+            <h2 style="margin-top:0; font-size:1.2rem;">New Task</h2>
             <input type="hidden" id="taskId">
-            <input type="text" id="taskName" placeholder="Task Name">
-            <input type="date" id="taskDate">
-            <select id="taskPriority">
-                <option value="high">High</option>
-                <option value="med">Medium</option>
-                <option value="low">Low</option>
-            </select>
+            
+            <div class="form-group">
+                <label>Task</label>
+                <input type="text" id="taskName" placeholder="e.g. Buy milk">
+            </div>
+            <div class="form-group">
+                <label>Date</label>
+                <input type="date" id="taskDate">
+            </div>
+            <div class="form-group">
+                <label>Priority</label>
+                <select id="taskPriority">
+                    <option value="high">High</option>
+                    <option value="med">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
             <div class="modal-btns">
-                <button onclick="closeModal()" style="background:none; border:none;">Cancel</button>
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
                 <button class="btn-save" onclick="saveTask()">Save</button>
             </div>
         </div>
@@ -222,88 +283,125 @@
           appId: "1:664846676694:web:119e02bf56a8d5b9db4f77"
         };
         firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(); const db = firebase.firestore();
+        const auth = firebase.auth();
+        const db = firebase.firestore();
         db.enablePersistence().catch(()=>{});
 
-        let currentUser = null, unsubscribe = null;
+        let currentUser = null;
+        let unsubscribe = null;
 
-        auth.onAuthStateChanged(u => {
-            if(u){ currentUser=u; document.getElementById('login-screen').style.display='none'; document.getElementById('app').style.display='flex'; document.getElementById('greeting').innerText = u.displayName?u.displayName.split(' ')[0]:'User'; loadTasks(); initDrag(); }
-            else { currentUser=null; document.getElementById('login-screen').style.display='flex'; document.getElementById('app').style.display='none'; }
+        // Auth Listener
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                currentUser = user;
+                document.getElementById('login-screen').style.display='none';
+                document.getElementById('app').style.display='block';
+                document.getElementById('greeting').innerText = user.displayName ? user.displayName.split(' ')[0] : 'User';
+                loadTasks();
+                initDrag();
+            } else {
+                currentUser = null;
+                document.getElementById('login-screen').style.display='flex';
+                document.getElementById('app').style.display='none';
+            }
         });
-        function signIn(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-        function logout(){ auth.signOut(); }
 
-        function initDrag(){
-            ['list-high','list-med','list-low'].forEach(id=>{
-                new Sortable(document.getElementById(id), { group:'shared', animation:150, delay:100, delayOnTouchOnly:true, 
-                onEnd: (evt) => { 
-                    const pid = evt.to.id.split('-')[1]; 
-                    if(pid) db.collection('tasks').doc(evt.item.dataset.id).update({priority:pid}); 
-                }});
-            });
-        }
+        function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+        function logout() { auth.signOut(); }
 
-        function loadTasks(){
+        // Logic
+        function loadTasks() {
             if(unsubscribe) unsubscribe();
-            unsubscribe = db.collection('tasks').where('uid','==',currentUser.uid).onSnapshot(snap => {
-                let tasks=[]; snap.forEach(d=>tasks.push({id:d.id, ...d.data()}));
-                tasks.sort((a,b)=>(a.completed===b.completed)?(new Date(a.dueDate||'9999')-new Date(b.dueDate||'9999')):(a.completed?1:-1));
-                
-                ['high','med','low'].forEach(p=>document.getElementById('list-'+p).innerHTML='');
-                tasks.forEach(t=>renderTask(t));
-            });
+            unsubscribe = db.collection('tasks')
+                .where('uid', '==', currentUser.uid)
+                .onSnapshot(snap => {
+                    const tasks = [];
+                    snap.forEach(d => tasks.push({id:d.id, ...d.data()}));
+                    
+                    // Sort: Completed last, then by Date
+                    tasks.sort((a,b) => (a.completed===b.completed) ? 
+                        (new Date(a.dueDate||'9999') - new Date(b.dueDate||'9999')) : 
+                        (a.completed?1:-1));
+
+                    ['high','med','low'].forEach(p => document.getElementById('list-'+p).innerHTML='');
+                    tasks.forEach(t => renderTask(t));
+                });
         }
 
-        function renderTask(t){
-            const d = document.createElement('div');
-            d.className = `card ${t.completed?'completed':''}`;
-            d.dataset.id = t.id;
-            d.onclick = (e) => { if(!e.target.closest('button')) openModal(t); };
+        function renderTask(t) {
+            const el = document.createElement('div');
+            el.className = `card ${t.completed ? 'completed' : ''}`;
+            el.dataset.id = t.id;
+            el.onclick = (e) => { if(!e.target.closest('button')) openModal(t); };
 
-            let dateHtml = '';
-            if(t.dueDate){
-                const dt = new Date(t.dueDate), today=new Date().toISOString().split('T')[0];
-                let cls = 'date-text';
-                if(t.dueDate<today && !t.completed) cls+=' overdue';
-                else if(t.dueDate===today && !t.completed) cls+=' today';
-                dateHtml = `<div class="${cls}">${dt.getDate()}/${dt.getMonth()+1}</div>`;
+            let dateHtml = '<span class="date">No Date</span>';
+            if(t.dueDate) {
+                const today = new Date().toISOString().split('T')[0];
+                let cls = 'date';
+                if(t.dueDate < today && !t.completed) cls += ' overdue';
+                else if(t.dueDate === today && !t.completed) cls += ' today';
+                const d = new Date(t.dueDate);
+                dateHtml = `<span class="${cls}">${d.getDate()}/${d.getMonth()+1}</span>`;
             }
 
-            d.innerHTML = `
+            el.innerHTML = `
                 <div class="task-name">${t.name}</div>
-                <div class="task-footer">
+                <div class="task-meta">
                     ${dateHtml}
-                    <div class="card-actions">
-                        <button class="mini-btn btn-del" onclick="delTask('${t.id}')">✕</button>
-                        <button class="mini-btn btn-check" onclick="toggle('${t.id}',${!t.completed})">✓</button>
+                    <div class="actions">
+                        <button class="act-btn btn-del" onclick="delTask('${t.id}')">✕</button>
+                        <button class="act-btn btn-chk" onclick="toggle('${t.id}',${!t.completed})">✓</button>
                     </div>
                 </div>
             `;
-            document.getElementById('list-'+t.priority).appendChild(d);
+            document.getElementById('list-'+t.priority).appendChild(el);
         }
 
-        function saveTask(){
-            const id=document.getElementById('taskId').value, n=document.getElementById('taskName').value;
-            if(!n)return;
-            const data={ uid:currentUser.uid, name:n, dueDate:document.getElementById('taskDate').value, priority:document.getElementById('taskPriority').value };
+        // Helpers
+        function initDrag() {
+            ['list-high','list-med','list-low'].forEach(id => {
+                new Sortable(document.getElementById(id), { 
+                    group: 'shared', animation: 150, delay: 150, delayOnTouchOnly: true,
+                    onEnd: (evt) => {
+                        const pid = evt.to.id.split('-')[1];
+                        if(pid) db.collection('tasks').doc(evt.item.dataset.id).update({priority:pid});
+                    }
+                });
+            });
+        }
+
+        function saveTask() {
+            const id = document.getElementById('taskId').value;
+            const name = document.getElementById('taskName').value;
+            if(!name) return;
+            const data = { 
+                uid: currentUser.uid, name: name, 
+                dueDate: document.getElementById('taskDate').value,
+                priority: document.getElementById('taskPriority').value
+            };
+            
             if(id) db.collection('tasks').doc(id).update(data);
-            else { data.completed=false; data.createdAt=firebase.firestore.FieldValue.serverTimestamp(); db.collection('tasks').add(data); }
+            else { 
+                data.completed=false; 
+                data.createdAt=firebase.firestore.FieldValue.serverTimestamp(); 
+                db.collection('tasks').add(data); 
+            }
             closeModal();
         }
-        function delTask(id){ if(confirm('Delete?')) db.collection('tasks').doc(id).delete(); }
-        function toggle(id,s){ db.collection('tasks').doc(id).update({completed:s}); }
-        
-        function openModal(t=null){
-            document.getElementById('taskId').value=t?t.id:'';
-            document.getElementById('taskName').value=t?t.name:'';
-            document.getElementById('taskDate').value=t?t.dueDate:'';
-            document.getElementById('taskPriority').value=t?t.priority:'high';
-            document.getElementById('taskModal').style.display='flex';
+
+        function delTask(id) { if(confirm('Delete?')) db.collection('tasks').doc(id).delete(); }
+        function toggle(id, s) { db.collection('tasks').doc(id).update({completed: s}); }
+
+        function openModal(t=null) {
+            document.getElementById('taskId').value = t?t.id:'';
+            document.getElementById('taskName').value = t?t.name:'';
+            document.getElementById('taskDate').value = t?t.dueDate:'';
+            document.getElementById('taskPriority').value = t?t.priority:'high';
+            document.getElementById('taskModal').style.display = 'flex';
             if(!t) setTimeout(()=>document.getElementById('taskName').focus(),100);
         }
-        function closeModal(){ document.getElementById('taskModal').style.display='none'; }
-        window.onclick=(e)=>{if(e.target.id=='taskModal')closeModal();}
+        function closeModal() { document.getElementById('taskModal').style.display='none'; }
+        window.onclick = (e) => { if(e.target.id === 'taskModal') closeModal(); }
     </script>
 </body>
 </html>
