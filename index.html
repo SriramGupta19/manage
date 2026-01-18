@@ -284,9 +284,9 @@
                 <div style="flex:1">
                     <label>Priority</label>
                     <select id="taskPriority">
-                        <option value="high">High (Red)</option>
-                        <option value="med">Medium (Yellow)</option>
-                        <option value="low">Low (Blue)</option>
+                        <option value="high">High</option>
+                        <option value="med">Medium</option>
+                        <option value="low">Low</option>
                     </select>
                 </div>
             </div>
@@ -297,6 +297,7 @@
                 <option value="In Progress">In Progress</option>
                 <option value="Waiting">Waiting</option>
                 <option value="Almost Done">Almost Done</option>
+                <option value="Revisit">Revisit</option>
             </select>
 
             <label>Subtasks</label>
@@ -426,8 +427,8 @@
                 <div class="task-name">${t.name}</div>
                 
                 <div class="info-row">
-                    ${dateStr ? `<span>📅 ${dateStr}</span>` : ''} 
-                    <span>📌 ${t.status || 'Not Started'}</span>
+                    ${dateStr ? `<span>Due: ${dateStr}</span>` : ''} 
+                    <span>Stat: ${t.status || 'Not Started'}</span>
                 </div>
                 
                 ${progressHtml}
