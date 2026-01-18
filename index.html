@@ -2,251 +2,355 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Task Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Task Flow</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
     <style>
         :root {
-            --primary: #2c3e50;
-            --accent: #3498db;
-            --danger: #e74c3c;
-            --warning: #e67e22;
-            --success: #27ae60;
-            --bg: #fdfdfd;
-            --card-bg: #ffffff;
+            /* Modern Palette */
+            --bg-body: #F3F4F6;
+            --bg-surface: #FFFFFF;
+            --text-main: #1F2937;
+            --text-muted: #6B7280;
+            
+            --primary: #4F46E5; /* Indigo */
+            --primary-hover: #4338ca;
+            
+            /* Priority Accents */
+            --col-high: #EF4444; /* Red */
+            --col-high-bg: #FEE2E2;
+            --col-med: #F59E0B;  /* Amber */
+            --col-med-bg: #FEF3C7;
+            --col-low: #3B82F6;  /* Blue */
+            --col-low-bg: #DBEAFE;
+
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 12px;
         }
 
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: var(--bg);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             margin: 0;
             padding: 0;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            color: var(--primary);
+            overflow: hidden; /* Prevent body scroll, handle inside board */
         }
 
-        /* Login Screen */
+        /* --- LOGIN SCREEN --- */
         #login-screen {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            text-align: center;
-        }
-
-        button.google-btn {
-            background: #4285F4;
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
             color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            padding: 20px;
         }
 
-        /* App Header */
+        #login-screen h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        #login-screen p { margin-bottom: 40px; opacity: 0.9; }
+
+        .google-btn {
+            background: white;
+            color: #333;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .google-btn:active { transform: scale(0.95); }
+
+        /* --- APP HEADER --- */
         header {
-            padding: 20px;
+            background: var(--bg-surface);
+            padding: 15px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--primary);
-            background: #fff;
+            box-shadow: var(--shadow-sm);
+            z-index: 20;
         }
 
-        h1 {
-            font-family: 'Patrick Hand', cursive;
+        .header-left h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.25rem;
             margin: 0;
-            font-size: 1.8rem;
+            color: var(--text-main);
         }
 
-        .add-btn {
-            border: 2px solid var(--primary);
-            background: transparent;
-            padding: 8px 16px;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.2rem;
+        .status-dot {
+            height: 8px; width: 8px;
+            background-color: #10B981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 8px;
+        }
+
+        .logout-btn {
+            background: none; border: none;
+            color: var(--text-muted);
+            font-weight: 500;
             cursor: pointer;
-            border-radius: 8px;
-            transition: 0.2s;
+            font-size: 0.9rem;
         }
 
-        .add-btn:hover { background: var(--primary); color: white; }
-
-        /* Board Layout */
+        /* --- BOARD LAYOUT (Kanban) --- */
         .board {
+            flex: 1;
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            padding: 10px;
-            height: 100%;
+            grid-template-columns: repeat(3, 1fr); /* Desktop Default */
+            gap: 20px;
+            padding: 20px;
+            overflow-y: hidden; /* Columns scroll internally */
             overflow-x: auto;
         }
 
+        /* Responsive Mobile Layout (Swipeable Columns) */
+        @media (max-width: 768px) {
+            .board {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                gap: 16px;
+                padding: 16px;
+            }
+            
+            .column {
+                min-width: 85vw; /* Show mostly one column */
+                scroll-snap-align: center;
+                height: 100%;
+            }
+        }
+
         .column {
+            background: var(--bg-surface); /* White background for columns if desired, or transparent */
+            border-radius: var(--radius);
             display: flex;
             flex-direction: column;
-            border-right: 1px solid #ccc;
-            padding: 0 10px;
-            height: 100%; /* Important for drag area */
+            max-height: 100%;
+            background: transparent; 
         }
-        
-        .column:last-child { border-right: none; }
 
         .col-header {
-            text-align: center;
-            font-weight: bold;
-            text-decoration: underline;
-            margin-bottom: 15px;
-            font-family: 'Patrick Hand', cursive;
-            font-size: 1.4rem;
-        }
-
-        /* Drop Zone Area */
-        .task-list {
-            flex-grow: 1;
-            min-height: 100px; /* Ensure empty lists are droppable */
-        }
-
-        /* Task Card */
-        .card {
-            background: var(--card-bg);
-            border: 2px solid var(--primary);
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 15px;
-            position: relative;
-            box-shadow: 3px 3px 0px rgba(0,0,0,0.1);
-            cursor: grab; /* Hand cursor for dragging */
-            transition: transform 0.1s, box-shadow 0.2s;
-            user-select: none; /* Prevent text selection while dragging */
-        }
-
-        .card:active { cursor: grabbing; transform: scale(1.02); box-shadow: 5px 5px 0px rgba(0,0,0,0.15); }
-        .card.completed { opacity: 0.6; }
-        .card.completed .task-name { text-decoration: line-through; }
-
-        /* Sortable Ghost Class (The placeholder while dragging) */
-        .sortable-ghost {
-            opacity: 0.4;
-            background: #eee;
-            border-style: dashed;
-        }
-
-        .task-name {
-            font-weight: bold;
+            padding: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
             font-size: 1.1rem;
-            margin-bottom: 5px;
-            font-family: 'Patrick Hand', cursive;
-        }
-
-        .task-meta {
-            font-size: 0.85rem;
-            color: #666;
-            margin-bottom: 25px;
-        }
-
-        /* DEADLINE STYLES */
-        .date-normal { color: #666; }
-        .date-today { color: var(--warning); font-weight: bold; }
-        .date-overdue { color: var(--danger); font-weight: bold; }
-
-        /* Card Buttons */
-        .card-actions {
-            position: absolute;
-            bottom: 10px;
-            left: 0;
-            right: 0;
-            padding: 0 10px;
+            border-radius: var(--radius);
+            margin-bottom: 12px;
             display: flex;
+            align-items: center;
             justify-content: space-between;
         }
 
-        .action-btn {
-            width: 30px;
-            height: 30px;
+        /* Column Specific Colors */
+        #col-high .col-header { background: var(--col-high-bg); color: #991B1B; }
+        #col-med  .col-header { background: var(--col-med-bg);  color: #92400E; }
+        #col-low  .col-header { background: var(--col-low-bg);  color: #1E40AF; }
+
+        .task-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px; /* Space for shadow */
+            padding-bottom: 80px; /* Space for FAB */
+        }
+
+        /* --- TASK CARD --- */
+        .card {
+            background: var(--bg-surface);
+            padding: 16px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+            position: relative;
+            border: 1px solid transparent;
+            cursor: grab;
+        }
+
+        .card:active { cursor: grabbing; }
+        /* Lift effect on drag/hover */
+        .card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .sortable-ghost { opacity: 0.4; background: #E5E7EB; border: 2px dashed #9CA3AF; box-shadow: none; }
+        
+        .card.completed { opacity: 0.6; }
+        .card.completed .task-name { text-decoration: line-through; color: var(--text-muted); }
+
+        .task-name {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 12px;
+        }
+
+        .date-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #F3F4F6;
+            color: var(--text-muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .date-badge.overdue { background: #FEE2E2; color: #EF4444; }
+        .date-badge.today { background: #FEF3C7; color: #D97706; }
+
+        /* Action Buttons */
+        .actions { display: flex; gap: 8px; }
+        
+        .icon-btn {
+            width: 32px; height: 32px;
             border-radius: 50%;
-            border: 2px solid var(--primary);
-            background: white;
+            border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-check { background: #ECFDF5; color: #10B981; }
+        .btn-check:hover { background: #D1FAE5; }
+        
+        .btn-del { background: #FEF2F2; color: #EF4444; }
+        .btn-del:hover { background: #FEE2E2; }
+
+        /* --- FLOATING ACTION BUTTON (FAB) --- */
+        .fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 56px;
+            height: 56px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
+            font-size: 24px;
             cursor: pointer;
-            z-index: 10;
+            transition: transform 0.2s;
+            z-index: 100;
+            border: none;
         }
+        .fab:hover { transform: scale(1.05); background-color: var(--primary-hover); }
+        .fab:active { transform: scale(0.95); }
 
-        .btn-delete { color: var(--danger); }
-        .btn-check { color: var(--success); }
-
-        /* Modal */
+        /* --- MODAL --- */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 200;
             align-items: center;
             justify-content: center;
-            z-index: 100;
         }
         
+        /* Slide up animation for mobile */
         .modal-content {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 24px;
+            border-radius: 20px;
             width: 90%;
             max-width: 400px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.3s ease-out;
         }
 
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal h2 { margin-top: 0; font-family: 'Poppins', sans-serif; }
+
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; color: var(--text-muted); }
         
-        .modal-actions { text-align: right; }
-        .save-btn { background: var(--accent); color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
-        .cancel-btn { background: #ccc; color: black; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
-
-        /* Status Indicator */
-        #connection-status {
-            font-size: 0.8rem;
-            margin-left: 10px;
-            color: #666;
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            background: #F9FAFB;
+            outline: none;
+            transition: border-color 0.2s;
         }
+        input:focus, select:focus { border-color: var(--primary); background: white; }
 
-        @media (max-width: 768px) {
-            .board { grid-template-columns: 1fr; overflow-y: scroll; }
-            .column { border-right: none; border-bottom: 1px solid #ccc; padding-bottom: 20px; height: auto; }
-            .task-list { min-height: 50px; }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
         }
+        
+        .btn-cancel { background: transparent; color: var(--text-muted); border: none; font-weight: 600; cursor: pointer; padding: 10px 20px; }
+        .btn-save { background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; padding: 10px 24px; cursor: pointer; }
+
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h1>My Personal Task Board</h1>
-        <p>Login to sync your tasks</p>
-        <button class="google-btn" onclick="signIn()">Sign in with Google</button>
+        <div>
+            <h1>Task Flow</h1>
+            <p>Focus on what matters.</p>
+            <button class="google-btn" onclick="signIn()">
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.63-.06-1.25-.17-1.84H9v3.49h4.84a4.13 4.13 0 0 1-1.79 2.72v2.26h2.9c1.7 1.57 2.68 3.88 2.68 6.51z" fill="#4285F4"/><path d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.82.85-3.06.85-2.34 0-4.33-1.58-5.04-3.71H.9v2.33A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.96 10.7c-.18-.54-.28-1.12-.28-1.7s.1-1.16.28-1.7V4.97H.9a8.997 8.997 0 0 0 0 7.06l3.06-2.33z" fill="#FBBC05"/><path d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.89 11.43 0 9 0 5.48 0 2.56 1.58.9 4.97l3.06 2.33C4.67 5.16 6.66 3.58 9 3.58z" fill="#EA4335"/></svg>
+                Sign in with Google
+            </button>
+        </div>
     </div>
 
     <div id="app" style="display: none;">
         <header>
-            <div style="display:flex; align-items:center;">
+            <div class="header-left">
                 <h1 id="greeting">Hello</h1>
-                <span id="connection-status"></span>
+                <div style="font-size: 0.75rem; color: #10B981; display:flex; align-items:center; margin-top:2px;">
+                    Online <span class="status-dot"></span>
+                </div>
             </div>
-            <div>
-                <button class="add-btn" onclick="logout()" style="margin-right:10px; font-size: 1rem; border:none; color: #666;">Logout</button>
-                <button class="add-btn" onclick="openModal()">+ Add</button>
-            </div>
+            <button class="logout-btn" onclick="logout()">Log out</button>
         </header>
 
         <div class="board">
@@ -256,7 +360,7 @@
             </div>
 
             <div class="column" id="col-med">
-                <div class="col-header">Med Priority</div>
+                <div class="col-header">Medium</div>
                 <div id="list-med" class="task-list"></div>
             </div>
 
@@ -265,6 +369,8 @@
                 <div id="list-low" class="task-list"></div>
             </div>
         </div>
+
+        <button class="fab" onclick="openModal()">+</button>
     </div>
 
     <div id="taskModal" class="modal">
@@ -273,27 +379,27 @@
             <input type="hidden" id="taskId">
             
             <div class="form-group">
-                <label>Task Name</label>
-                <input type="text" id="taskName" placeholder="e.g., Finish Research Paper">
+                <label>What needs to be done?</label>
+                <input type="text" id="taskName" placeholder="e.g., Submit Project Report" autocomplete="off">
             </div>
 
             <div class="form-group">
-                <label>Due</label>
+                <label>Due Date</label>
                 <input type="date" id="taskDate">
             </div>
 
             <div class="form-group">
-                <label>Priority</label>
+                <label>Priority Level</label>
                 <select id="taskPriority">
-                    <option value="high">High</option>
-                    <option value="med">Medium</option>
-                    <option value="low">Low</option>
+                    <option value="high">High Priority</option>
+                    <option value="med">Medium Priority</option>
+                    <option value="low">Low Priority</option>
                 </select>
             </div>
 
             <div class="modal-actions">
-                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
-                <button class="save-btn" onclick="saveTask()">Save</button>
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-save" onclick="saveTask()">Save Task</button>
             </div>
         </div>
     </div>
@@ -303,9 +409,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <script>
-        // ==========================================
-        // 1. CONFIGURATION (PASTE KEYS HERE)
-        // ==========================================
+        // CONFIG
         const firebaseConfig = {
           apiKey: "AIzaSyCT8IUeGW2OAslHjS8MfeXrZjbXAmpAcuM",
           authDomain: "manager-651e5.firebaseapp.com",
@@ -315,25 +419,16 @@
           appId: "1:664846676694:web:119e02bf56a8d5b9db4f77"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
         
-        // ENABLE OFFLINE PERSISTENCE
-        db.enablePersistence()
-            .then(() => {
-                document.getElementById('connection-status').innerText = "(Offline Ready)";
-            })
-            .catch((err) => {
-                console.log("Persistence error:", err.code);
-            });
+        db.enablePersistence().catch(err => console.log("Persistence error:", err.code));
 
         let currentUser = null;
+        let unsubscribe = null;
 
-        // ==========================================
-        // 2. AUTH & INIT
-        // ==========================================
+        // AUTH
         const loginScreen = document.getElementById('login-screen');
         const appScreen = document.getElementById('app');
         const greeting = document.getElementById('greeting');
@@ -342,7 +437,8 @@
             if (user) {
                 currentUser = user;
                 loginScreen.style.display = 'none';
-                appScreen.style.display = 'block';
+                appScreen.style.display = 'flex'; // Changed to flex for full height
+                appScreen.style.flexDirection = 'column';
                 greeting.textContent = `Hello, ${user.displayName ? user.displayName.split(' ')[0] : 'Ram'}`;
                 loadTasks();
                 initDragAndDrop();
@@ -362,72 +458,51 @@
             auth.signOut();
         }
 
-        // ==========================================
-        // 3. DRAG AND DROP LOGIC (SORTABLE JS)
-        // ==========================================
+        // DRAG & DROP
         function initDragAndDrop() {
             const lists = ['list-high', 'list-med', 'list-low'];
-            
             lists.forEach(listId => {
                 new Sortable(document.getElementById(listId), {
-                    group: 'shared', // Allow dragging between lists
-                    animation: 150,  // Smooth animation
-                    ghostClass: 'sortable-ghost', // Class for the placeholder
-                    delay: 100, // Small delay prevents accidental drags on mobile tap
+                    group: 'shared',
+                    animation: 200,
+                    ghostClass: 'sortable-ghost',
+                    delay: 150, // Prevents accidental drag on scroll
+                    delayOnTouchOnly: true,
                     onEnd: function (evt) {
-                        // evt.item = the DOM element dragged
-                        // evt.to = the list it was dropped into
                         const taskEl = evt.item;
-                        const newContainerId = evt.to.id; // e.g., "list-low"
-                        
-                        // Extract new priority from container ID
+                        const newContainerId = evt.to.id;
                         const newPriority = newContainerId.replace('list-', ''); 
                         const taskId = taskEl.getAttribute('data-id');
 
-                        // Update Database
                         if (taskId && newPriority) {
-                            db.collection('tasks').doc(taskId).update({
-                                priority: newPriority
-                            });
+                            db.collection('tasks').doc(taskId).update({ priority: newPriority });
                         }
                     }
                 });
             });
         }
 
-        // ==========================================
-        // 4. DATABASE & UI
-        // ==========================================
-        let unsubscribe = null;
-
+        // DATA LOADING
         function loadTasks() {
             if (unsubscribe) unsubscribe();
-
-            // Fetch tasks for user
             unsubscribe = db.collection('tasks')
                 .where('uid', '==', currentUser.uid)
                 .onSnapshot(snapshot => {
-                    
-                    // 1. Convert snapshot to array
                     let tasks = [];
-                    snapshot.forEach(doc => {
-                        tasks.push({ id: doc.id, ...doc.data() });
-                    });
+                    snapshot.forEach(doc => tasks.push({ id: doc.id, ...doc.data() }));
 
-                    // 2. Client-side Sorting (Date Ascending)
-                    // We do this in JS to avoid "Missing Index" errors in Firestore
+                    // Sort: Completed last, then by date
                     tasks.sort((a, b) => {
-                        if (!a.dueDate) return 1; // No date goes to bottom
+                        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+                        if (!a.dueDate) return 1;
                         if (!b.dueDate) return -1;
                         return new Date(a.dueDate) - new Date(b.dueDate);
                     });
 
-                    // 3. Clear Lists
                     document.getElementById('list-high').innerHTML = '';
                     document.getElementById('list-med').innerHTML = '';
                     document.getElementById('list-low').innerHTML = '';
 
-                    // 4. Render Sorted Tasks
                     tasks.forEach(task => renderTask(task));
                 });
         }
@@ -435,64 +510,64 @@
         function renderTask(task) {
             const card = document.createElement('div');
             card.className = `card ${task.completed ? 'completed' : ''}`;
-            card.setAttribute('data-id', task.id); // Important for drag & drop
+            card.setAttribute('data-id', task.id);
             card.onclick = (e) => editTask(task, e);
 
-            // Date Logic (Visual Deadlines)
-            let dateClass = 'date-normal';
-            let dateText = 'No due date';
-            
+            // Date Styling
+            let dateHtml = '';
             if (task.dueDate) {
-                const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-                dateText = `Due: ${task.dueDate}`;
+                const today = new Date().toISOString().split('T')[0];
+                const dateObj = new Date(task.dueDate);
+                const niceDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                let badgeClass = 'date-badge';
+                let icon = '📅';
                 
                 if (task.dueDate < today && !task.completed) {
-                    dateClass = 'date-overdue'; // RED
-                    dateText = `Overdue: ${task.dueDate}`;
+                    badgeClass += ' overdue';
+                    icon = '⚠️';
                 } else if (task.dueDate === today && !task.completed) {
-                    dateClass = 'date-today'; // ORANGE
-                    dateText = `Due Today!`;
+                    badgeClass += ' today';
+                    icon = '🔥';
                 }
+                
+                dateHtml = `<div class="${badgeClass}">${icon} ${niceDate}</div>`;
             }
-
-            const statusDisplay = task.completed ? 'Completed' : 'Pending';
 
             card.innerHTML = `
                 <div class="task-name">${task.name}</div>
-                <div class="task-meta">
-                    <span class="${dateClass}">${dateText}</span><br>
-                    Status: ${statusDisplay}
-                </div>
-                <div class="card-actions">
-                    <div class="action-btn btn-delete" onmousedown="event.stopPropagation()" onclick="deleteTask('${task.id}')">✕</div>
-                    <div class="action-btn btn-check" onmousedown="event.stopPropagation()" onclick="toggleComplete('${task.id}', ${!task.completed})">✓</div>
+                <div class="task-footer">
+                    ${dateHtml}
+                    <div class="actions">
+                        <button class="icon-btn btn-del" onmousedown="event.stopPropagation()" onclick="deleteTask('${task.id}')">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                        <button class="icon-btn btn-check" onmousedown="event.stopPropagation()" onclick="toggleComplete('${task.id}', ${!task.completed})">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </button>
+                    </div>
                 </div>
             `;
 
-            // Append to correct column
             const listId = `list-${task.priority}`;
             const list = document.getElementById(listId);
             if(list) list.appendChild(card);
         }
 
-        // ==========================================
-        // 5. CRUD OPERATIONS
-        // ==========================================
-        
+        // OPERATIONS
         function saveTask() {
             const id = document.getElementById('taskId').value;
             const name = document.getElementById('taskName').value;
             const date = document.getElementById('taskDate').value;
             const priority = document.getElementById('taskPriority').value;
 
-            if (!name) return alert("Task name is required");
+            if (!name) return alert("Please enter a task name");
 
             const taskData = {
                 uid: currentUser.uid,
                 name: name,
                 dueDate: date,
                 priority: priority,
-                // Do not reset 'completed' on edit, only on create
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
@@ -507,9 +582,7 @@
         }
 
         function deleteTask(id) {
-            if(confirm('Delete this task?')) {
-                db.collection('tasks').doc(id).delete();
-            }
+            if(confirm('Delete this task?')) db.collection('tasks').doc(id).delete();
         }
 
         function toggleComplete(id, status) {
@@ -517,8 +590,7 @@
         }
 
         function editTask(task, e) {
-            // Prevent editing if clicking actions (handled by stopPropagation, but extra safety)
-            if(e.target.closest('.action-btn')) return;
+            if(e.target.closest('button')) return; // Ignore button clicks
 
             document.getElementById('taskId').value = task.id;
             document.getElementById('taskName').value = task.name;
@@ -529,16 +601,14 @@
             document.getElementById('taskModal').style.display = 'flex';
         }
 
-        // ==========================================
-        // 6. UTILITIES
-        // ==========================================
         function openModal() {
             document.getElementById('taskId').value = '';
             document.getElementById('taskName').value = '';
             document.getElementById('taskDate').value = '';
             document.getElementById('taskPriority').value = 'high';
-            document.getElementById('modalTitle').textContent = "Add Task";
+            document.getElementById('modalTitle').textContent = "New Task";
             document.getElementById('taskModal').style.display = 'flex';
+            setTimeout(() => document.getElementById('taskName').focus(), 100);
         }
 
         function closeModal() {
@@ -546,9 +616,7 @@
         }
 
         window.onclick = function(event) {
-            if (event.target == document.getElementById('taskModal')) {
-                closeModal();
-            }
+            if (event.target == document.getElementById('taskModal')) closeModal();
         }
     </script>
 </body>
