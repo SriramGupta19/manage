@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Task Manager</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --danger: #e74c3c;
+            --warning: #e67e22;
+            --success: #27ae60;
+            --bg: #fdfdfd;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: var(--primary);
+        }
+
+        /* Login Screen */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        button.google-btn {
+            background: #4285F4;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* App Header */
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary);
+            background: #fff;
+        }
+
+        h1 {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .add-btn {
+            border: 2px solid var(--primary);
+            background: transparent;
+            padding: 8px 16px;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.2s;
+        }
+
+        .add-btn:hover { background: var(--primary); color: white; }
+
+        /* Board Layout */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 10px;
+            height: 100%;
+            overflow-x: auto;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #ccc;
+            padding: 0 10px;
+            height: 100%; /* Important for drag area */
+        }
+        
+        .column:last-child { border-right: none; }
+
+        .col-header {
+            text-align: center;
+            font-weight: bold;
+            text-decoration: underline;
+            margin-bottom: 15px;
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.4rem;
+        }
+
+        /* Drop Zone Area */
+        .task-list {
+            flex-grow: 1;
+            min-height: 100px; /* Ensure empty lists are droppable */
+        }
+
+        /* Task Card */
+        .card {
+            background: var(--card-bg);
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            position: relative;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+            cursor: grab; /* Hand cursor for dragging */
+            transition: transform 0.1s, box-shadow 0.2s;
+            user-select: none; /* Prevent text selection while dragging */
+        }
+
+        .card:active { cursor: grabbing; transform: scale(1.02); box-shadow: 5px 5px 0px rgba(0,0,0,0.15); }
+        .card.completed { opacity: 0.6; }
+        .card.completed .task-name { text-decoration: line-through; }
+
+        /* Sortable Ghost Class (The placeholder while dragging) */
+        .sortable-ghost {
+            opacity: 0.4;
+            background: #eee;
+            border-style: dashed;
+        }
+
+        .task-name {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            font-family: 'Patrick Hand', cursive;
+        }
+
+        .task-meta {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        /* DEADLINE STYLES */
+        .date-normal { color: #666; }
+        .date-today { color: var(--warning); font-weight: bold; }
+        .date-overdue { color: var(--danger); font-weight: bold; }
+
+        /* Card Buttons */
+        .card-actions {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            padding: 0 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .action-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .btn-delete { color: var(--danger); }
+        .btn-check { color: var(--success); }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        .modal-actions { text-align: right; }
+        .save-btn { background: var(--accent); color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; }
+        .cancel-btn { background: #ccc; color: black; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+
+        /* Status Indicator */
+        #connection-status {
+            font-size: 0.8rem;
+            margin-left: 10px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .board { grid-template-columns: 1fr; overflow-y: scroll; }
+            .column { border-right: none; border-bottom: 1px solid #ccc; padding-bottom: 20px; height: auto; }
+            .task-list { min-height: 50px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <h1>My Personal Task Board</h1>
+        <p>Login to sync your tasks</p>
+        <button class="google-btn" onclick="signIn()">Sign in with Google</button>
+    </div>
+
+    <div id="app" style="display: none;">
+        <header>
+            <div style="display:flex; align-items:center;">
+                <h1 id="greeting">Hello</h1>
+                <span id="connection-status"></span>
+            </div>
+            <div>
+                <button class="add-btn" onclick="logout()" style="margin-right:10px; font-size: 1rem; border:none; color: #666;">Logout</button>
+                <button class="add-btn" onclick="openModal()">+ Add</button>
+            </div>
+        </header>
+
+        <div class="board">
+            <div class="column" id="col-high">
+                <div class="col-header">High Priority</div>
+                <div id="list-high" class="task-list"></div>
+            </div>
+
+            <div class="column" id="col-med">
+                <div class="col-header">Med Priority</div>
+                <div id="list-med" class="task-list"></div>
+            </div>
+
+            <div class="column" id="col-low">
+                <div class="col-header">Low Priority</div>
+                <div id="list-low" class="task-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Add Task</h2>
+            <input type="hidden" id="taskId">
+            
+            <div class="form-group">
+                <label>Task Name</label>
+                <input type="text" id="taskName" placeholder="e.g., Finish Research Paper">
+            </div>
+
+            <div class="form-group">
+                <label>Due</label>
+                <input type="date" id="taskDate">
+            </div>
+
+            <div class="form-group">
+                <label>Priority</label>
+                <select id="taskPriority">
+                    <option value="high">High</option>
+                    <option value="med">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="save-btn" onclick="saveTask()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ==========================================
+        // 1. CONFIGURATION (PASTE KEYS HERE)
+        // ==========================================
+        const firebaseConfig = {
+          apiKey: "AIzaSyCT8IUeGW2OAslHjS8MfeXrZjbXAmpAcuM",
+          authDomain: "manager-651e5.firebaseapp.com",
+          projectId: "manager-651e5",
+          storageBucket: "manager-651e5.firebasestorage.app",
+          messagingSenderId: "664846676694",
+          appId: "1:664846676694:web:119e02bf56a8d5b9db4f77"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        
+        // ENABLE OFFLINE PERSISTENCE
+        db.enablePersistence()
+            .then(() => {
+                document.getElementById('connection-status').innerText = "(Offline Ready)";
+            })
+            .catch((err) => {
+                console.log("Persistence error:", err.code);
+            });
+
+        let currentUser = null;
+
+        // ==========================================
+        // 2. AUTH & INIT
+        // ==========================================
+        const loginScreen = document.getElementById('login-screen');
+        const appScreen = document.getElementById('app');
+        const greeting = document.getElementById('greeting');
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                loginScreen.style.display = 'none';
+                appScreen.style.display = 'block';
+                greeting.textContent = `Hello, ${user.displayName ? user.displayName.split(' ')[0] : 'Ram'}`;
+                loadTasks();
+                initDragAndDrop();
+            } else {
+                currentUser = null;
+                loginScreen.style.display = 'flex';
+                appScreen.style.display = 'none';
+            }
+        });
+
+        function signIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(alert);
+        }
+
+        function logout() {
+            auth.signOut();
+        }
+
+        // ==========================================
+        // 3. DRAG AND DROP LOGIC (SORTABLE JS)
+        // ==========================================
+        function initDragAndDrop() {
+            const lists = ['list-high', 'list-med', 'list-low'];
+            
+            lists.forEach(listId => {
+                new Sortable(document.getElementById(listId), {
+                    group: 'shared', // Allow dragging between lists
+                    animation: 150,  // Smooth animation
+                    ghostClass: 'sortable-ghost', // Class for the placeholder
+                    delay: 100, // Small delay prevents accidental drags on mobile tap
+                    onEnd: function (evt) {
+                        // evt.item = the DOM element dragged
+                        // evt.to = the list it was dropped into
+                        const taskEl = evt.item;
+                        const newContainerId = evt.to.id; // e.g., "list-low"
+                        
+                        // Extract new priority from container ID
+                        const newPriority = newContainerId.replace('list-', ''); 
+                        const taskId = taskEl.getAttribute('data-id');
+
+                        // Update Database
+                        if (taskId && newPriority) {
+                            db.collection('tasks').doc(taskId).update({
+                                priority: newPriority
+                            });
+                        }
+                    }
+                });
+            });
+        }
+
+        // ==========================================
+        // 4. DATABASE & UI
+        // ==========================================
+        let unsubscribe = null;
+
+        function loadTasks() {
+            if (unsubscribe) unsubscribe();
+
+            // Fetch tasks for user
+            unsubscribe = db.collection('tasks')
+                .where('uid', '==', currentUser.uid)
+                .onSnapshot(snapshot => {
+                    
+                    // 1. Convert snapshot to array
+                    let tasks = [];
+                    snapshot.forEach(doc => {
+                        tasks.push({ id: doc.id, ...doc.data() });
+                    });
+
+                    // 2. Client-side Sorting (Date Ascending)
+                    // We do this in JS to avoid "Missing Index" errors in Firestore
+                    tasks.sort((a, b) => {
+                        if (!a.dueDate) return 1; // No date goes to bottom
+                        if (!b.dueDate) return -1;
+                        return new Date(a.dueDate) - new Date(b.dueDate);
+                    });
+
+                    // 3. Clear Lists
+                    document.getElementById('list-high').innerHTML = '';
+                    document.getElementById('list-med').innerHTML = '';
+                    document.getElementById('list-low').innerHTML = '';
+
+                    // 4. Render Sorted Tasks
+                    tasks.forEach(task => renderTask(task));
+                });
+        }
+
+        function renderTask(task) {
+            const card = document.createElement('div');
+            card.className = `card ${task.completed ? 'completed' : ''}`;
+            card.setAttribute('data-id', task.id); // Important for drag & drop
+            card.onclick = (e) => editTask(task, e);
+
+            // Date Logic (Visual Deadlines)
+            let dateClass = 'date-normal';
+            let dateText = 'No due date';
+            
+            if (task.dueDate) {
+                const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                dateText = `Due: ${task.dueDate}`;
+                
+                if (task.dueDate < today && !task.completed) {
+                    dateClass = 'date-overdue'; // RED
+                    dateText = `Overdue: ${task.dueDate}`;
+                } else if (task.dueDate === today && !task.completed) {
+                    dateClass = 'date-today'; // ORANGE
+                    dateText = `Due Today!`;
+                }
+            }
+
+            const statusDisplay = task.completed ? 'Completed' : 'Pending';
+
+            card.innerHTML = `
+                <div class="task-name">${task.name}</div>
+                <div class="task-meta">
+                    <span class="${dateClass}">${dateText}</span><br>
+                    Status: ${statusDisplay}
+                </div>
+                <div class="card-actions">
+                    <div class="action-btn btn-delete" onmousedown="event.stopPropagation()" onclick="deleteTask('${task.id}')">✕</div>
+                    <div class="action-btn btn-check" onmousedown="event.stopPropagation()" onclick="toggleComplete('${task.id}', ${!task.completed})">✓</div>
+                </div>
+            `;
+
+            // Append to correct column
+            const listId = `list-${task.priority}`;
+            const list = document.getElementById(listId);
+            if(list) list.appendChild(card);
+        }
+
+        // ==========================================
+        // 5. CRUD OPERATIONS
+        // ==========================================
+        
+        function saveTask() {
+            const id = document.getElementById('taskId').value;
+            const name = document.getElementById('taskName').value;
+            const date = document.getElementById('taskDate').value;
+            const priority = document.getElementById('taskPriority').value;
+
+            if (!name) return alert("Task name is required");
+
+            const taskData = {
+                uid: currentUser.uid,
+                name: name,
+                dueDate: date,
+                priority: priority,
+                // Do not reset 'completed' on edit, only on create
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (id) {
+                db.collection('tasks').doc(id).update(taskData);
+            } else {
+                taskData.completed = false;
+                taskData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                db.collection('tasks').add(taskData);
+            }
+            closeModal();
+        }
+
+        function deleteTask(id) {
+            if(confirm('Delete this task?')) {
+                db.collection('tasks').doc(id).delete();
+            }
+        }
+
+        function toggleComplete(id, status) {
+            db.collection('tasks').doc(id).update({ completed: status });
+        }
+
+        function editTask(task, e) {
+            // Prevent editing if clicking actions (handled by stopPropagation, but extra safety)
+            if(e.target.closest('.action-btn')) return;
+
+            document.getElementById('taskId').value = task.id;
+            document.getElementById('taskName').value = task.name;
+            document.getElementById('taskDate').value = task.dueDate;
+            document.getElementById('taskPriority').value = task.priority;
+            
+            document.getElementById('modalTitle').textContent = "Edit Task";
+            document.getElementById('taskModal').style.display = 'flex';
+        }
+
+        // ==========================================
+        // 6. UTILITIES
+        // ==========================================
+        function openModal() {
+            document.getElementById('taskId').value = '';
+            document.getElementById('taskName').value = '';
+            document.getElementById('taskDate').value = '';
+            document.getElementById('taskPriority').value = 'high';
+            document.getElementById('modalTitle').textContent = "Add Task";
+            document.getElementById('taskModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('taskModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('taskModal')) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
