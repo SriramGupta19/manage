@@ -287,7 +287,20 @@
                 currentUser=null; document.getElementById('login-screen').style.display='flex'; document.getElementById('app').style.display='none';
             }
         });
-        function signIn(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+
+        // FIXED LOGIN FUNCTION
+        function signIn() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    console.log("Logged in:", result.user);
+                })
+                .catch((error) => {
+                    alert("Login Failed: " + error.message);
+                    console.error("Login Error:", error);
+                });
+        }
+
         function logout(){ auth.signOut(); }
 
         // --- THEME ---
@@ -335,7 +348,6 @@
                 .onSnapshot(snap => {
                     allTasks = [];
                     snap.forEach(d => {
-                        // Manual filtering for archived if index missing, or just safety
                         const data = d.data();
                         if(!data.archived) allTasks.push({id:d.id, ...data});
                     });
