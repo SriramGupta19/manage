@@ -36,7 +36,6 @@
             --input-bg: #374151;
             --border-color: #374151;
 
-            /* Priority Theme Colors (Dark Mode) */
             --bg-high: #450a0a; --border-high: #7f1d1d; --text-high: #fecaca;
             --bg-med:  #451a03; --border-med:  #78350f; --text-med:  #fde68a;
             --bg-low:  #172554; --border-low:  #1e3a8a; --text-low:  #bfdbfe;
@@ -65,10 +64,11 @@
             transition: background 0.3s;
         }
         
+        /* Flex containers for header items */
         .header-left { display: flex; align-items: center; gap: 15px; flex: 1; }
         .header-right { display: flex; align-items: center; gap: 10px; }
 
-        h1 { font-family: 'Poppins', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 600; }
+        h1 { font-family: 'Poppins', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 600; white-space: nowrap;}
         
         /* Search Bar */
         .search-container { position: relative; max-width: 200px; width: 100%; }
@@ -117,18 +117,15 @@
 
         .info-row { font-size: 0.75rem; opacity: 0.8; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
         
-        /* Tags Pill */
         .tags-container { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
         .tag-pill { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.1); font-weight: 600; }
 
-        /* Subtask Progress */
         .progress-bar-bg { height: 4px; width: 100%; background: rgba(0,0,0,0.1); border-radius: 2px; margin-top: 6px; overflow: hidden; }
         .progress-bar-fill { height: 100%; background: currentColor; width: 0%; transition: width 0.3s; opacity: 0.7; }
         .subtask-text { font-size: 0.7rem; margin-top: 2px; opacity: 0.8; text-align: right; }
 
         .card-footer { margin-top: auto; display: flex; justify-content: flex-end; padding-top: 10px; }
 
-        /* Buttons */
         .btn-group { display: flex; gap: 8px; }
         .circle-btn {
             width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1);
@@ -137,6 +134,68 @@
         }
         .btn-del { color: #DC2626; }
         .btn-chk { color: #059669; }
+
+        /* --- MOBILE OPTIMIZATION (CSS MAGIC HERE) --- */
+        @media (max-width: 600px) {
+            /* 1. Header: Un-crammed */
+            header {
+                height: auto; /* Allow growth */
+                flex-wrap: wrap;
+                padding: 10px;
+                gap: 10px;
+            }
+            .header-left {
+                width: 100%;
+                order: 2; /* Move search below buttons */
+                margin-top: 0px;
+            }
+            .header-right {
+                width: 100%;
+                order: 1; /* Greeting and buttons on top */
+                justify-content: space-between; /* Spread them out */
+            }
+            /* Move greeting into the right flex container visually */
+            #greeting { order: -1; margin-right: auto; } /* Push buttons to right */
+            .search-container { max-width: 100%; width: 100%; }
+            
+            /* Board Adjustment: Reduce gaps */
+            .board { padding: 2px; gap: 2px; height: calc(100vh - 100px); /* Adjust for taller header */ }
+            
+            /* 2. Card Layout: Vertical Stacking */
+            .card {
+                padding: 8px 4px; /* Save space */
+                min-height: auto;
+            }
+            .task-name {
+                font-size: 0.8rem; /* Reduced font */
+                text-align: center;
+                margin-bottom: 4px;
+            }
+            
+            /* Stack Info Rows (Date, Status) Vertically */
+            .info-row {
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                font-size: 0.7rem;
+                gap: 2px;
+            }
+            
+            /* Center Tags */
+            .tags-container { justify-content: center; margin-bottom: 4px; }
+            .tag-pill { font-size: 0.6rem; padding: 1px 4px; }
+
+            /* 3. Center Buttons */
+            .card-footer {
+                justify-content: center; /* Center buttons */
+                padding-top: 6px;
+            }
+            .circle-btn { width: 24px; height: 24px; font-size: 12px; } /* Smaller buttons */
+            
+            .progress-bar-bg { width: 80%; margin: 4px auto; }
+            .subtask-text { text-align: center; font-size: 0.65rem; }
+        }
+
 
         /* --- MODAL --- */
         #login-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: #4F46E5; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; z-index:100; }
@@ -151,7 +210,6 @@
         label { font-size: 0.75rem; font-weight: 600; opacity: 0.7; display: block; margin-bottom: 4px; margin-top: 10px; }
         input, select { width: 100%; padding: 10px; margin-bottom: 2px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--input-bg); color: var(--text); }
         
-        /* Subtask Inputs in Modal */
         .subtask-input-group { display: flex; gap: 5px; margin-bottom: 5px; }
         .subtask-check { width: auto !important; margin: 0 !important; }
 
@@ -159,12 +217,7 @@
         .btn-save { background: #111; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;}
         body.dark-mode .btn-save { background: #4F46E5; }
 
-        /* Archive View */
-        #archive-screen {
-            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--bg); z-index: 80; padding: 20px;
-            flex-direction: column;
-        }
+        #archive-screen { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg); z-index: 80; padding: 20px; flex-direction: column; }
         #archive-list { flex: 1; overflow-y: auto; margin-top: 10px; }
         .archive-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     </style>
@@ -179,7 +232,6 @@
     <div id="app" style="display:none">
         <header>
             <div class="header-left">
-                <h1 id="greeting">Hi</h1>
                 <div class="search-container">
                     <span class="search-icon">🔍</span>
                     <input type="text" id="searchInput" class="search-input" placeholder="Search..." onkeyup="filterTasks()">
@@ -187,9 +239,11 @@
             </div>
             
             <div class="header-right">
+                <h1 id="greeting" style="margin-right:15px">Hi</h1>
+
                 <button class="btn-header" onclick="toggleArchiveView()" title="View Archive">📂</button>
                 <button class="btn-header" onclick="toggleDarkMode()" id="themeBtn">🌙</button>
-                <button class="btn-header" onclick="logout()">Logout</button>
+                <button class="btn-header" onclick="logout()">🏃</button>
             </div>
         </header>
 
@@ -263,7 +317,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <script>
-        // CONFIG
         const firebaseConfig = {
           apiKey: "AIzaSyCT8IUeGW2OAslHjS8MfeXrZjbXAmpAcuM",
           authDomain: "manager-651e5.firebaseapp.com",
@@ -278,9 +331,8 @@
         db.enablePersistence().catch(()=>{});
 
         let currentUser = null, unsubscribe = null;
-        let allTasks = []; // Store tasks locally for filtering
+        let allTasks = [];
 
-        // 2. Dark Mode Logic
         if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark-mode');
         function toggleDarkMode(){
             document.body.classList.toggle('dark-mode');
@@ -320,14 +372,10 @@
 
         function loadTasks(){
             if(unsubscribe) unsubscribe();
-            // Fetch all tasks, filter archived client side to avoid index issues
             unsubscribe = db.collection('tasks').where('uid','==',currentUser.uid).onSnapshot(snap => {
                 allTasks = [];
                 snap.forEach(d=>allTasks.push({id:d.id, ...d.data()}));
-                
-                // Sort
                 allTasks.sort((a,b)=>(a.completed===b.completed)?(new Date(a.dueDate||'9999')-new Date(b.dueDate||'9999')):(a.completed?1:-1));
-                
                 renderAll();
             });
         }
@@ -339,19 +387,13 @@
             const term = document.getElementById('searchInput').value.toLowerCase();
 
             allTasks.forEach(t => {
-                // Filter by Search
                 const match = t.name.toLowerCase().includes(term) || (t.tags && t.tags.join(' ').toLowerCase().includes(term));
                 if(!match) return;
-
-                if (t.archived) {
-                    renderArchiveTask(t);
-                } else {
-                    renderTask(t);
-                }
+                if (t.archived) renderArchiveTask(t);
+                else renderTask(t);
             });
         }
 
-        // 1. Search Filter
         function filterTasks() { renderAll(); }
 
         function renderTask(t){
@@ -362,13 +404,11 @@
 
             const dateStr = t.dueDate ? new Date(t.dueDate).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '';
             
-            // 4. Tags Rendering
             let tagsHtml = '';
             if(t.tags && t.tags.length > 0) {
                 tagsHtml = '<div class="tags-container">' + t.tags.map(tag => `<span class="tag-pill">${tag}</span>`).join('') + '</div>';
             }
 
-            // 3. Subtasks Progress
             let progressHtml = '';
             if(t.subtasks && t.subtasks.length > 0) {
                 const done = t.subtasks.filter(s=>s.done).length;
@@ -380,6 +420,7 @@
                 `;
             }
 
+            // Note: info-row is flex-column on mobile via CSS
             d.innerHTML = `
                 ${tagsHtml}
                 <div class="task-name">${t.name}</div>
@@ -410,7 +451,6 @@
             document.getElementById('archive-list').appendChild(d);
         }
 
-        // --- Subtask Logic in Modal ---
         function addSubtaskInput(text='', done=false) {
             const div = document.createElement('div');
             div.className = 'subtask-input-group';
@@ -427,11 +467,9 @@
             const n=document.getElementById('taskName').value;
             if(!n) return;
 
-            // Collect Tags
             const tagStr = document.getElementById('taskTags').value;
             const tags = tagStr ? tagStr.split(',').map(s=>s.trim()).filter(s=>s) : [];
 
-            // Collect Subtasks
             const subEls = document.querySelectorAll('.subtask-input-group');
             const subtasks = [];
             subEls.forEach(el => {
@@ -461,8 +499,6 @@
 
         function delTask(id){ if(confirm('Delete permanently?')) db.collection('tasks').doc(id).delete(); }
         function toggle(id,s){ db.collection('tasks').doc(id).update({completed:s}); }
-        
-        // 5. Archive Logic
         function archiveCurrentTask() {
             const id = document.getElementById('taskId').value;
             if(id) { db.collection('tasks').doc(id).update({archived:true}); closeModal(); }
@@ -484,7 +520,7 @@
             const sl = document.getElementById('subtaskList');
             sl.innerHTML = '';
             if(t && t.subtasks) t.subtasks.forEach(s => addSubtaskInput(s.text, s.done));
-            else if(!t) addSubtaskInput(); // Add one empty by default for new tasks
+            else if(!t) addSubtaskInput();
 
             document.getElementById('taskModal').style.display='flex';
             if(!t) setTimeout(()=>document.getElementById('taskName').focus(),100);
