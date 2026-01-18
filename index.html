@@ -6,22 +6,18 @@
     <title>Task Manager</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
     <style>
         :root {
-            --bg: #F3F4F6;
-            --surface: #FFFFFF;
+            --bg: #F9FAFB;
             --text: #1F2937;
-            --text-light: #6B7280;
             
-            /* Priority Colors */
-            --red: #EF4444; --red-bg: #FEF2F2;
-            --orange: #F59E0B; --orange-bg: #FFFBEB;
-            --blue: #3B82F6; --blue-bg: #EFF6FF;
+            /* Priority Theme Colors (Backgrounds & Borders) */
+            --bg-high: #FEF2F2; --border-high: #FECACA; --text-high: #991B1B;
+            --bg-med:  #FFFBEB; --border-med:  #FDE68A; --text-med:  #92400E;
+            --bg-low:  #EFF6FF; --border-low:  #BFDBFE; --text-low:  #1E40AF;
 
-            --radius: 12px;
             --header-height: 60px;
         }
 
@@ -31,211 +27,142 @@
             font-family: 'Inter', sans-serif;
             background-color: var(--bg);
             color: var(--text);
-            margin: 0;
-            padding: 0;
-            height: 100vh; /* Full screen height */
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; /* Prevent page-level scroll */
+            margin: 0; padding: 0;
+            height: 100vh;
+            display: flex; flex-direction: column;
+            overflow: hidden;
         }
 
-        /* --- 1. HEADER (Fixed Top) --- */
+        /* --- HEADER --- */
         header {
             height: var(--header-height);
-            background: var(--surface);
-            border-bottom: 1px solid #E5E7EB;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 16px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-            flex-shrink: 0; /* Never shrink */
-            z-index: 50;
+            background: white; border-bottom: 1px solid #E5E7EB;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 16px; flex-shrink: 0; z-index: 50;
         }
+        h1 { font-family: 'Poppins', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 600; }
+        .logout-btn { background: #F3F4F6; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; cursor: pointer; }
 
-        h1 {
-            font-family: 'Poppins', sans-serif;
-            font-size: 1.1rem;
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .logout-btn {
-            background: #F3F4F6;
-            color: var(--text);
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        /* --- 2. BOARD (The 3 Parallel Columns) --- */
+        /* --- BOARD (3 Columns) --- */
         .board {
-            display: flex; /* Flex is better for equal columns than grid here */
-            flex: 1; /* Take remaining height */
-            gap: 8px;
-            padding: 8px;
+            display: flex;
+            flex: 1;
+            gap: 4px; /* Reduced Gap */
+            padding: 4px;
             height: calc(100vh - var(--header-height));
-            overflow: hidden; /* Hide overflow outside columns */
+            overflow: hidden;
         }
 
         .column {
-            flex: 1; /* Each column takes 33% */
-            background: #fff;
-            border-radius: var(--radius);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden; /* Ensure list scrolls inside */
-            border: 1px solid #E5E7EB;
-            min-width: 0; /* Allows text truncation in flex */
+            flex: 1;
+            display: flex; flex-direction: column;
+            border-radius: 8px;
+            /* Subtle indication of zones since headers are gone */
+            background: rgba(0,0,0,0.02); 
+            overflow: hidden;
+            min-width: 0;
         }
 
-        /* Column Headers */
-        .col-header {
-            text-align: center;
-            padding: 10px 4px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
-
-        #col-high .col-header { background: var(--red-bg); color: var(--red); }
-        #col-med  .col-header { background: var(--orange-bg); color: var(--orange); }
-        #col-low  .col-header { background: var(--blue-bg); color: var(--blue); }
-
-        /* The Scrollable List Area */
         .task-list {
             flex: 1;
-            overflow-y: auto; /* Vertical scroll ONLY here */
-            padding: 6px;
+            overflow-y: auto;
+            padding: 4px;
+            /* Ensure bottom of list is accessible */
+            padding-bottom: 80px; 
+        }
+
+        /* --- COLORED CARDS --- */
+        .card {
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            display: flex; 
+            flex-direction: column;
+            min-height: 110px; /* Increased vertical length */
+            position: relative;
+            cursor: grab;
+            border: 1px solid transparent;
+            transition: transform 0.1s;
         }
         
-        /* Scrollbar styling for cleanliness */
-        .task-list::-webkit-scrollbar { width: 4px; }
-        .task-list::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 4px; }
-
-        /* --- 3. CARDS --- */
-        .card {
-            background: white;
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-            cursor: grab;
-            font-size: 0.85rem;
-            position: relative;
-        }
-
         .card:active { cursor: grabbing; transform: scale(0.98); }
-        .card.completed { opacity: 0.5; }
+        .card.completed { opacity: 0.5; filter: grayscale(0.8); }
         .card.completed .task-name { text-decoration: line-through; }
 
+        /* Color Variations */
+        .card-high { background-color: var(--bg-high); border-color: var(--border-high); }
+        .card-med  { background-color: var(--bg-med);  border-color: var(--border-med); }
+        .card-low  { background-color: var(--bg-low);  border-color: var(--border-low); }
+
         .task-name {
-            font-weight: 500;
-            margin-bottom: 6px;
-            line-height: 1.3;
-            word-break: break-word; /* Crucial for narrow columns */
+            font-weight: 600;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            color: #111;
+            word-wrap: break-word;
         }
 
-        .task-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-top: 4px;
+        .info-row {
+            font-size: 0.75rem;
+            color: #555;
+            margin-bottom: 4px;
+            display: flex; align-items: center; gap: 4px;
         }
 
-        /* Tiny Date */
-        .date { font-size: 0.7rem; color: #9CA3AF; }
-        .date.overdue { color: var(--red); font-weight: 600; }
-        .date.today { color: var(--orange); font-weight: 600; }
+        /* Push footer to bottom so it never overlaps text */
+        .card-footer {
+            margin-top: auto; 
+            display: flex; 
+            justify-content: flex-end;
+            padding-top: 10px;
+        }
 
-        /* Card Actions */
-        .actions { display: flex; gap: 4px; }
-        .act-btn {
-            width: 24px; height: 24px;
-            border-radius: 4px; border: none;
+        /* Buttons */
+        .btn-group { display: flex; gap: 8px; }
+        .circle-btn {
+            width: 28px; height: 28px;
+            border-radius: 50%; border: 1px solid rgba(0,0,0,0.1);
+            background: white;
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; font-size: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .btn-del { background: #FEF2F2; color: var(--red); }
-        .btn-chk { background: #ECFDF5; color: #10B981; }
+        .btn-del { color: #DC2626; }
+        .btn-chk { color: #059669; }
 
-        /* --- LOGIN & MODALS --- */
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: white; z-index: 999;
-        }
-        .google-btn {
-            background: white; color: #333; padding: 12px 24px; border-radius: 50px;
-            border: none; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;
-        }
-
-        /* FAB */
-        .fab {
-            position: fixed; bottom: 20px; right: 20px;
-            width: 52px; height: 52px; border-radius: 50%;
-            background: var(--text); color: white; border: none;
-            font-size: 26px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; z-index: 100;
-        }
-
-        /* Modal */
-        .modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 200;
-            align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: white; width: 85%; max-width: 320px;
-            padding: 20px; border-radius: 16px;
-        }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-size: 0.75rem; color: var(--text-light); margin-bottom: 4px; font-weight: 600; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 0.95rem; }
+        /* --- MODAL & LOGIN --- */
+        #login-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: #4F46E5; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; z-index:100; }
+        .google-btn { background:white; color:#333; padding:12px 20px; border-radius:50px; border:none; font-weight:600; cursor:pointer; }
         
-        .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
-        .btn-cancel { background: none; border: none; color: var(--text-light); cursor: pointer; }
-        .btn-save { background: var(--text); color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+        .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: #111; color: white; border-radius: 50%; font-size: 28px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 90; }
 
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:200; align-items:center; justify-content:center; }
+        .modal-content { background:white; width:85%; max-width:320px; padding:20px; border-radius:16px; }
+        label { font-size: 0.75rem; font-weight: 600; color: #666; display: block; margin-bottom: 4px; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+        .btn-save { background: #111; color: white; border: none; padding: 10px 20px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h1 style="font-size: 2rem; margin-bottom: 10px;">Task Manager</h1>
-        <button class="google-btn" onclick="signIn()">
-             Sign in with Google
-        </button>
+        <h1 style="font-size:2rem; margin-bottom:10px">Task Manager</h1>
+        <button class="google-btn" onclick="signIn()">Sign in with Google</button>
     </div>
 
-    <div id="app" style="display: none;">
+    <div id="app" style="display:none">
         <header>
-            <h1 id="greeting">Loading...</h1>
+            <h1 id="greeting">Hi</h1>
             <button class="logout-btn" onclick="logout()">Logout</button>
         </header>
 
         <div class="board">
-            <div class="column" id="col-high">
-                <div class="col-header">High</div>
-                <div id="list-high" class="task-list"></div>
-            </div>
-            <div class="column" id="col-med">
-                <div class="col-header">Med</div>
-                <div id="list-med" class="task-list"></div>
-            </div>
-            <div class="column" id="col-low">
-                <div class="col-header">Low</div>
-                <div id="list-low" class="task-list"></div>
-            </div>
+            <div class="column" id="col-high"><div id="list-high" class="task-list"></div></div>
+            <div class="column" id="col-med"><div id="list-med" class="task-list"></div></div>
+            <div class="column" id="col-low"><div id="list-low" class="task-list"></div></div>
         </div>
 
         <button class="fab" onclick="openModal()">+</button>
@@ -243,27 +170,32 @@
 
     <div id="taskModal" class="modal">
         <div class="modal-content">
-            <h2 style="margin-top:0; font-size:1.2rem;">New Task</h2>
+            <h2 style="margin-top:0">Task Details</h2>
             <input type="hidden" id="taskId">
             
-            <div class="form-group">
-                <label>Task</label>
-                <input type="text" id="taskName" placeholder="e.g. Buy milk">
-            </div>
-            <div class="form-group">
-                <label>Date</label>
-                <input type="date" id="taskDate">
-            </div>
-            <div class="form-group">
-                <label>Priority</label>
-                <select id="taskPriority">
-                    <option value="high">High</option>
-                    <option value="med">Medium</option>
-                    <option value="low">Low</option>
-                </select>
-            </div>
+            <label>Task Name</label>
+            <input type="text" id="taskName">
+
+            <label>Due Date</label>
+            <input type="date" id="taskDate">
+
+            <label>Current Status</label>
+            <select id="taskStatus">
+                <option value="Not Started">Not Started</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Waiting">Waiting</option>
+                <option value="Almost Done">Almost Done</option>
+            </select>
+
+            <label>Priority (Column)</label>
+            <select id="taskPriority">
+                <option value="high">High (Red)</option>
+                <option value="med">Medium (Yellow)</option>
+                <option value="low">Low (Blue)</option>
+            </select>
+
             <div class="modal-btns">
-                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button onclick="closeModal()" style="background:none; border:none; color:#666">Cancel</button>
                 <button class="btn-save" onclick="saveTask()">Save</button>
             </div>
         </div>
@@ -274,6 +206,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <script>
+        // CONFIG
         const firebaseConfig = {
           apiKey: "AIzaSyCT8IUeGW2OAslHjS8MfeXrZjbXAmpAcuM",
           authDomain: "manager-651e5.firebaseapp.com",
@@ -287,81 +220,29 @@
         const db = firebase.firestore();
         db.enablePersistence().catch(()=>{});
 
-        let currentUser = null;
-        let unsubscribe = null;
+        let currentUser = null, unsubscribe = null;
 
-        // Auth Listener
-        auth.onAuthStateChanged(user => {
-            if(user) {
-                currentUser = user;
-                document.getElementById('login-screen').style.display='none';
-                document.getElementById('app').style.display='block';
-                document.getElementById('greeting').innerText = user.displayName ? user.displayName.split(' ')[0] : 'User';
-                loadTasks();
-                initDrag();
-            } else {
-                currentUser = null;
-                document.getElementById('login-screen').style.display='flex';
-                document.getElementById('app').style.display='none';
+        auth.onAuthStateChanged(u => {
+            if(u){ 
+                currentUser=u; 
+                document.getElementById('login-screen').style.display='none'; 
+                document.getElementById('app').style.display='block'; 
+                document.getElementById('greeting').innerText = u.displayName ? u.displayName.split(' ')[0] : 'User'; 
+                loadTasks(); 
+                initDrag(); 
+            } else { 
+                currentUser=null; 
+                document.getElementById('login-screen').style.display='flex'; 
+                document.getElementById('app').style.display='none'; 
             }
         });
 
-        function signIn() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-        function logout() { auth.signOut(); }
+        function signIn(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+        function logout(){ auth.signOut(); }
 
-        // Logic
-        function loadTasks() {
-            if(unsubscribe) unsubscribe();
-            unsubscribe = db.collection('tasks')
-                .where('uid', '==', currentUser.uid)
-                .onSnapshot(snap => {
-                    const tasks = [];
-                    snap.forEach(d => tasks.push({id:d.id, ...d.data()}));
-                    
-                    // Sort: Completed last, then by Date
-                    tasks.sort((a,b) => (a.completed===b.completed) ? 
-                        (new Date(a.dueDate||'9999') - new Date(b.dueDate||'9999')) : 
-                        (a.completed?1:-1));
-
-                    ['high','med','low'].forEach(p => document.getElementById('list-'+p).innerHTML='');
-                    tasks.forEach(t => renderTask(t));
-                });
-        }
-
-        function renderTask(t) {
-            const el = document.createElement('div');
-            el.className = `card ${t.completed ? 'completed' : ''}`;
-            el.dataset.id = t.id;
-            el.onclick = (e) => { if(!e.target.closest('button')) openModal(t); };
-
-            let dateHtml = '<span class="date">No Date</span>';
-            if(t.dueDate) {
-                const today = new Date().toISOString().split('T')[0];
-                let cls = 'date';
-                if(t.dueDate < today && !t.completed) cls += ' overdue';
-                else if(t.dueDate === today && !t.completed) cls += ' today';
-                const d = new Date(t.dueDate);
-                dateHtml = `<span class="${cls}">${d.getDate()}/${d.getMonth()+1}</span>`;
-            }
-
-            el.innerHTML = `
-                <div class="task-name">${t.name}</div>
-                <div class="task-meta">
-                    ${dateHtml}
-                    <div class="actions">
-                        <button class="act-btn btn-del" onclick="delTask('${t.id}')">✕</button>
-                        <button class="act-btn btn-chk" onclick="toggle('${t.id}',${!t.completed})">✓</button>
-                    </div>
-                </div>
-            `;
-            document.getElementById('list-'+t.priority).appendChild(el);
-        }
-
-        // Helpers
-        function initDrag() {
-            ['list-high','list-med','list-low'].forEach(id => {
-                new Sortable(document.getElementById(id), { 
-                    group: 'shared', animation: 150, delay: 150, delayOnTouchOnly: true,
+        function initDrag(){
+            ['list-high','list-med','list-low'].forEach(id=>{
+                new Sortable(document.getElementById(id), { group:'shared', animation:150, delay:100, delayOnTouchOnly:true,
                     onEnd: (evt) => {
                         const pid = evt.to.id.split('-')[1];
                         if(pid) db.collection('tasks').doc(evt.item.dataset.id).update({priority:pid});
@@ -370,38 +251,84 @@
             });
         }
 
-        function saveTask() {
-            const id = document.getElementById('taskId').value;
-            const name = document.getElementById('taskName').value;
-            if(!name) return;
+        function loadTasks(){
+            if(unsubscribe) unsubscribe();
+            unsubscribe = db.collection('tasks').where('uid','==',currentUser.uid).onSnapshot(snap => {
+                let tasks=[]; snap.forEach(d=>tasks.push({id:d.id, ...d.data()}));
+                tasks.sort((a,b)=>(a.completed===b.completed)?(new Date(a.dueDate||'9999')-new Date(b.dueDate||'9999')):(a.completed?1:-1));
+                ['high','med','low'].forEach(p=>document.getElementById('list-'+p).innerHTML='');
+                tasks.forEach(t=>renderTask(t));
+            });
+        }
+
+        function renderTask(t){
+            const d = document.createElement('div');
+            // Add priority class for coloring
+            d.className = `card card-${t.priority} ${t.completed?'completed':''}`;
+            d.dataset.id = t.id;
+            d.onclick = (e) => { if(!e.target.closest('button')) openModal(t); };
+
+            const dateStr = t.dueDate ? new Date(t.dueDate).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : 'No Date';
+            const statusStr = t.status || "Not Started";
+
+            d.innerHTML = `
+                <div class="task-name">${t.name}</div>
+                
+                <div class="info-row">
+                    <span>📅</span> <span>${dateStr}</span>
+                </div>
+                
+                <div class="info-row">
+                    <span>📌</span> <strong>${statusStr}</strong>
+                </div>
+
+                <div class="card-footer">
+                    <div class="btn-group">
+                        <button class="circle-btn btn-del" onclick="delTask('${t.id}')">✕</button>
+                        <button class="circle-btn btn-chk" onclick="toggle('${t.id}',${!t.completed})">✓</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById('list-'+t.priority).appendChild(d);
+        }
+
+        function saveTask(){
+            const id=document.getElementById('taskId').value;
+            const n=document.getElementById('taskName').value;
+            if(!n) return;
+
             const data = { 
-                uid: currentUser.uid, name: name, 
+                uid: currentUser.uid, 
+                name: n, 
                 dueDate: document.getElementById('taskDate').value,
-                priority: document.getElementById('taskPriority').value
+                priority: document.getElementById('taskPriority').value,
+                status: document.getElementById('taskStatus').value // New Status Field
             };
-            
+
             if(id) db.collection('tasks').doc(id).update(data);
             else { 
-                data.completed=false; 
-                data.createdAt=firebase.firestore.FieldValue.serverTimestamp(); 
+                data.completed = false; 
+                data.createdAt = firebase.firestore.FieldValue.serverTimestamp(); 
                 db.collection('tasks').add(data); 
             }
             closeModal();
         }
 
-        function delTask(id) { if(confirm('Delete?')) db.collection('tasks').doc(id).delete(); }
-        function toggle(id, s) { db.collection('tasks').doc(id).update({completed: s}); }
-
-        function openModal(t=null) {
-            document.getElementById('taskId').value = t?t.id:'';
-            document.getElementById('taskName').value = t?t.name:'';
-            document.getElementById('taskDate').value = t?t.dueDate:'';
-            document.getElementById('taskPriority').value = t?t.priority:'high';
-            document.getElementById('taskModal').style.display = 'flex';
+        function delTask(id){ if(confirm('Delete?')) db.collection('tasks').doc(id).delete(); }
+        function toggle(id,s){ db.collection('tasks').doc(id).update({completed:s}); }
+        
+        function openModal(t=null){
+            document.getElementById('taskId').value=t?t.id:'';
+            document.getElementById('taskName').value=t?t.name:'';
+            document.getElementById('taskDate').value=t?t.dueDate:'';
+            document.getElementById('taskPriority').value=t?t.priority:'high';
+            document.getElementById('taskStatus').value=t?t.status:'Not Started';
+            
+            document.getElementById('taskModal').style.display='flex';
             if(!t) setTimeout(()=>document.getElementById('taskName').focus(),100);
         }
-        function closeModal() { document.getElementById('taskModal').style.display='none'; }
-        window.onclick = (e) => { if(e.target.id === 'taskModal') closeModal(); }
+        function closeModal(){ document.getElementById('taskModal').style.display='none'; }
+        window.onclick=(e)=>{if(e.target.id=='taskModal')closeModal();}
     </script>
 </body>
 </html>
