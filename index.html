@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Task Manager</title>
+    <title>Task Manager Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
@@ -12,13 +12,34 @@
         :root {
             --bg: #F9FAFB;
             --text: #1F2937;
+            --header-bg: white;
+            --card-bg: white;
+            --modal-bg: white;
+            --input-bg: white;
+            --border-color: #E5E7EB;
             
-            /* Priority Theme Colors (Backgrounds & Borders) */
+            /* Priority Theme Colors (Light Mode) */
             --bg-high: #FEF2F2; --border-high: #FECACA; --text-high: #991B1B;
             --bg-med:  #FFFBEB; --border-med:  #FDE68A; --text-med:  #92400E;
             --bg-low:  #EFF6FF; --border-low:  #BFDBFE; --text-low:  #1E40AF;
 
             --header-height: 60px;
+        }
+
+        /* --- DARK MODE VARIABLES --- */
+        body.dark-mode {
+            --bg: #111827;
+            --text: #F3F4F6;
+            --header-bg: #1F2937;
+            --card-bg: #1F2937;
+            --modal-bg: #1F2937;
+            --input-bg: #374151;
+            --border-color: #374151;
+
+            /* Priority Theme Colors (Dark Mode) */
+            --bg-high: #450a0a; --border-high: #7f1d1d; --text-high: #fecaca;
+            --bg-med:  #451a03; --border-med:  #78350f; --text-med:  #fde68a;
+            --bg-low:  #172554; --border-low:  #1e3a8a; --text-low:  #bfdbfe;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -31,119 +52,121 @@
             height: 100vh;
             display: flex; flex-direction: column;
             overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         /* --- HEADER --- */
         header {
             height: var(--header-height);
-            background: white; border-bottom: 1px solid #E5E7EB;
+            background: var(--header-bg); 
+            border-bottom: 1px solid var(--border-color);
             display: flex; justify-content: space-between; align-items: center;
             padding: 0 16px; flex-shrink: 0; z-index: 50;
+            transition: background 0.3s;
         }
-        h1 { font-family: 'Poppins', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 600; }
-        .logout-btn { background: #F3F4F6; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; cursor: pointer; }
+        
+        .header-left { display: flex; align-items: center; gap: 15px; flex: 1; }
+        .header-right { display: flex; align-items: center; gap: 10px; }
 
-        /* --- BOARD (3 Columns) --- */
+        h1 { font-family: 'Poppins', sans-serif; font-size: 1.1rem; margin: 0; font-weight: 600; }
+        
+        /* Search Bar */
+        .search-container { position: relative; max-width: 200px; width: 100%; }
+        .search-input {
+            width: 100%; padding: 6px 10px 6px 30px;
+            border-radius: 20px; border: 1px solid var(--border-color);
+            background: var(--bg); color: var(--text);
+            font-size: 0.85rem; outline: none;
+        }
+        .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #888; }
+
+        .btn-header { background: var(--bg); border: 1px solid var(--border-color); color: var(--text); padding: 6px 10px; border-radius: 6px; font-weight: 500; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+        .btn-header:hover { opacity: 0.8; }
+
+        /* --- BOARD --- */
         .board {
-            display: flex;
-            flex: 1;
-            gap: 4px; /* Reduced Gap */
-            padding: 4px;
-            height: calc(100vh - var(--header-height));
-            overflow: hidden;
+            display: flex; flex: 1; gap: 4px; padding: 4px;
+            height: calc(100vh - var(--header-height)); overflow: hidden;
         }
 
         .column {
-            flex: 1;
-            display: flex; flex-direction: column;
-            border-radius: 8px;
-            /* Subtle indication of zones since headers are gone */
-            background: rgba(0,0,0,0.02); 
-            overflow: hidden;
-            min-width: 0;
+            flex: 1; display: flex; flex-direction: column;
+            border-radius: 8px; background: rgba(0,0,0,0.02); 
+            overflow: hidden; min-width: 0;
         }
 
-        .task-list {
-            flex: 1;
-            overflow-y: auto;
-            padding: 4px;
-            /* Ensure bottom of list is accessible */
-            padding-bottom: 80px; 
-        }
+        .task-list { flex: 1; overflow-y: auto; padding: 4px; padding-bottom: 80px; }
 
-        /* --- COLORED CARDS --- */
+        /* --- CARDS --- */
         .card {
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 8px;
+            border-radius: 12px; padding: 12px; margin-bottom: 8px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            display: flex; 
-            flex-direction: column;
-            min-height: 110px; /* Increased vertical length */
-            position: relative;
-            cursor: grab;
-            border: 1px solid transparent;
-            transition: transform 0.1s;
+            display: flex; flex-direction: column;
+            min-height: 110px; position: relative; cursor: grab;
+            border: 1px solid transparent; transition: transform 0.1s, background-color 0.3s;
         }
-        
         .card:active { cursor: grabbing; transform: scale(0.98); }
-        .card.completed { opacity: 0.5; filter: grayscale(0.8); }
+        .card.completed { opacity: 0.6; filter: grayscale(0.6); }
         .card.completed .task-name { text-decoration: line-through; }
 
-        /* Color Variations */
-        .card-high { background-color: var(--bg-high); border-color: var(--border-high); }
-        .card-med  { background-color: var(--bg-med);  border-color: var(--border-med); }
-        .card-low  { background-color: var(--bg-low);  border-color: var(--border-low); }
+        .card-high { background-color: var(--bg-high); border-color: var(--border-high); color: var(--text-high); }
+        .card-med  { background-color: var(--bg-med);  border-color: var(--border-med); color: var(--text-med); }
+        .card-low  { background-color: var(--bg-low);  border-color: var(--border-low); color: var(--text-low); }
 
-        .task-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            margin-bottom: 8px;
-            color: #111;
-            word-wrap: break-word;
-        }
+        .task-name { font-weight: 600; font-size: 0.95rem; line-height: 1.4; margin-bottom: 6px; word-wrap: break-word; }
 
-        .info-row {
-            font-size: 0.75rem;
-            color: #555;
-            margin-bottom: 4px;
-            display: flex; align-items: center; gap: 4px;
-        }
+        .info-row { font-size: 0.75rem; opacity: 0.8; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
+        
+        /* Tags Pill */
+        .tags-container { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+        .tag-pill { font-size: 0.65rem; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.1); font-weight: 600; }
 
-        /* Push footer to bottom so it never overlaps text */
-        .card-footer {
-            margin-top: auto; 
-            display: flex; 
-            justify-content: flex-end;
-            padding-top: 10px;
-        }
+        /* Subtask Progress */
+        .progress-bar-bg { height: 4px; width: 100%; background: rgba(0,0,0,0.1); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; background: currentColor; width: 0%; transition: width 0.3s; opacity: 0.7; }
+        .subtask-text { font-size: 0.7rem; margin-top: 2px; opacity: 0.8; text-align: right; }
+
+        .card-footer { margin-top: auto; display: flex; justify-content: flex-end; padding-top: 10px; }
 
         /* Buttons */
         .btn-group { display: flex; gap: 8px; }
         .circle-btn {
-            width: 28px; height: 28px;
-            border-radius: 50%; border: 1px solid rgba(0,0,0,0.1);
-            background: white;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; font-size: 14px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.1);
+            background: var(--card-bg); display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
         .btn-del { color: #DC2626; }
         .btn-chk { color: #059669; }
 
-        /* --- MODAL & LOGIN --- */
+        /* --- MODAL --- */
         #login-screen { position: fixed; top:0; left:0; right:0; bottom:0; background: #4F46E5; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; z-index:100; }
         .google-btn { background:white; color:#333; padding:12px 20px; border-radius:50px; border:none; font-weight:600; cursor:pointer; }
         
         .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: #111; color: white; border-radius: 50%; font-size: 28px; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 90; }
+        body.dark-mode .fab { background: #4F46E5; }
 
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:200; align-items:center; justify-content:center; }
-        .modal-content { background:white; width:85%; max-width:320px; padding:20px; border-radius:16px; }
-        label { font-size: 0.75rem; font-weight: 600; color: #666; display: block; margin-bottom: 4px; }
-        input, select { width: 100%; padding: 10px; margin-bottom: 12px; border: 1px solid #ddd; border-radius: 8px; }
-        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
-        .btn-save { background: #111; color: white; border: none; padding: 10px 20px; border-radius: 8px; }
+        .modal-content { background:var(--modal-bg); color: var(--text); width:90%; max-width:350px; padding:20px; border-radius:16px; max-height: 90vh; overflow-y: auto; }
+        
+        label { font-size: 0.75rem; font-weight: 600; opacity: 0.7; display: block; margin-bottom: 4px; margin-top: 10px; }
+        input, select { width: 100%; padding: 10px; margin-bottom: 2px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--input-bg); color: var(--text); }
+        
+        /* Subtask Inputs in Modal */
+        .subtask-input-group { display: flex; gap: 5px; margin-bottom: 5px; }
+        .subtask-check { width: auto !important; margin: 0 !important; }
+
+        .modal-btns { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-save { background: #111; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;}
+        body.dark-mode .btn-save { background: #4F46E5; }
+
+        /* Archive View */
+        #archive-screen {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg); z-index: 80; padding: 20px;
+            flex-direction: column;
+        }
+        #archive-list { flex: 1; overflow-y: auto; margin-top: 10px; }
+        .archive-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -155,8 +178,19 @@
 
     <div id="app" style="display:none">
         <header>
-            <h1 id="greeting">Hi</h1>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+            <div class="header-left">
+                <h1 id="greeting">Hi</h1>
+                <div class="search-container">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search..." onkeyup="filterTasks()">
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="btn-header" onclick="toggleArchiveView()" title="View Archive">📂</button>
+                <button class="btn-header" onclick="toggleDarkMode()" id="themeBtn">🌙</button>
+                <button class="btn-header" onclick="logout()">Logout</button>
+            </div>
         </header>
 
         <div class="board">
@@ -168,6 +202,15 @@
         <button class="fab" onclick="openModal()">+</button>
     </div>
 
+    <div id="archive-screen">
+        <div class="archive-header">
+            <h2>Archived Tasks</h2>
+            <button class="btn-header" onclick="toggleArchiveView()">Close</button>
+        </div>
+        <p style="font-size:0.8rem; opacity:0.6">Completed tasks moved here to clean up your board.</p>
+        <div id="archive-list"></div>
+    </div>
+
     <div id="taskModal" class="modal">
         <div class="modal-content">
             <h2 style="margin-top:0">Task Details</h2>
@@ -176,10 +219,25 @@
             <label>Task Name</label>
             <input type="text" id="taskName">
 
-            <label>Due Date</label>
-            <input type="date" id="taskDate">
+            <label>Tags (comma separated)</label>
+            <input type="text" id="taskTags" placeholder="e.g. Research, Personal">
 
-            <label>Current Status</label>
+            <div style="display:flex; gap:10px;">
+                <div style="flex:1">
+                    <label>Due Date</label>
+                    <input type="date" id="taskDate">
+                </div>
+                <div style="flex:1">
+                    <label>Priority</label>
+                    <select id="taskPriority">
+                        <option value="high">High (Red)</option>
+                        <option value="med">Medium (Yellow)</option>
+                        <option value="low">Low (Blue)</option>
+                    </select>
+                </div>
+            </div>
+
+            <label>Status</label>
             <select id="taskStatus">
                 <option value="Not Started">Not Started</option>
                 <option value="In Progress">In Progress</option>
@@ -187,15 +245,14 @@
                 <option value="Almost Done">Almost Done</option>
             </select>
 
-            <label>Priority (Column)</label>
-            <select id="taskPriority">
-                <option value="high">High (Red)</option>
-                <option value="med">Medium (Yellow)</option>
-                <option value="low">Low (Blue)</option>
-            </select>
-
+            <label>Subtasks</label>
+            <div id="subtaskList"></div>
+            <button onclick="addSubtaskInput()" style="margin-top:5px; background:none; border:1px dashed #aaa; width:100%; padding:5px; cursor:pointer; color:var(--text)">+ Add Subtask</button>
+            
             <div class="modal-btns">
-                <button onclick="closeModal()" style="background:none; border:none; color:#666">Cancel</button>
+                <button class="btn-header" style="border:none; background:none; color:red" onclick="archiveCurrentTask()">Archive</button>
+                <div style="flex:1"></div>
+                <button onclick="closeModal()" style="background:none; border:none; color:var(--text); cursor:pointer">Cancel</button>
                 <button class="btn-save" onclick="saveTask()">Save</button>
             </div>
         </div>
@@ -221,6 +278,16 @@
         db.enablePersistence().catch(()=>{});
 
         let currentUser = null, unsubscribe = null;
+        let allTasks = []; // Store tasks locally for filtering
+
+        // 2. Dark Mode Logic
+        if(localStorage.getItem('theme')==='dark') document.body.classList.add('dark-mode');
+        function toggleDarkMode(){
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            document.getElementById('themeBtn').innerText = isDark ? '☀️' : '🌙';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
 
         auth.onAuthStateChanged(u => {
             if(u){ 
@@ -253,34 +320,76 @@
 
         function loadTasks(){
             if(unsubscribe) unsubscribe();
+            // Fetch all tasks, filter archived client side to avoid index issues
             unsubscribe = db.collection('tasks').where('uid','==',currentUser.uid).onSnapshot(snap => {
-                let tasks=[]; snap.forEach(d=>tasks.push({id:d.id, ...d.data()}));
-                tasks.sort((a,b)=>(a.completed===b.completed)?(new Date(a.dueDate||'9999')-new Date(b.dueDate||'9999')):(a.completed?1:-1));
-                ['high','med','low'].forEach(p=>document.getElementById('list-'+p).innerHTML='');
-                tasks.forEach(t=>renderTask(t));
+                allTasks = [];
+                snap.forEach(d=>allTasks.push({id:d.id, ...d.data()}));
+                
+                // Sort
+                allTasks.sort((a,b)=>(a.completed===b.completed)?(new Date(a.dueDate||'9999')-new Date(b.dueDate||'9999')):(a.completed?1:-1));
+                
+                renderAll();
             });
         }
 
+        function renderAll() {
+            ['high','med','low'].forEach(p=>document.getElementById('list-'+p).innerHTML='');
+            document.getElementById('archive-list').innerHTML='';
+
+            const term = document.getElementById('searchInput').value.toLowerCase();
+
+            allTasks.forEach(t => {
+                // Filter by Search
+                const match = t.name.toLowerCase().includes(term) || (t.tags && t.tags.join(' ').toLowerCase().includes(term));
+                if(!match) return;
+
+                if (t.archived) {
+                    renderArchiveTask(t);
+                } else {
+                    renderTask(t);
+                }
+            });
+        }
+
+        // 1. Search Filter
+        function filterTasks() { renderAll(); }
+
         function renderTask(t){
             const d = document.createElement('div');
-            // Add priority class for coloring
             d.className = `card card-${t.priority} ${t.completed?'completed':''}`;
             d.dataset.id = t.id;
-            d.onclick = (e) => { if(!e.target.closest('button')) openModal(t); };
+            d.onclick = (e) => { if(!e.target.closest('button') && !e.target.closest('input')) openModal(t); };
 
-            const dateStr = t.dueDate ? new Date(t.dueDate).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : 'No Date';
-            const statusStr = t.status || "Not Started";
+            const dateStr = t.dueDate ? new Date(t.dueDate).toLocaleDateString('en-US', {month:'short', day:'numeric'}) : '';
+            
+            // 4. Tags Rendering
+            let tagsHtml = '';
+            if(t.tags && t.tags.length > 0) {
+                tagsHtml = '<div class="tags-container">' + t.tags.map(tag => `<span class="tag-pill">${tag}</span>`).join('') + '</div>';
+            }
+
+            // 3. Subtasks Progress
+            let progressHtml = '';
+            if(t.subtasks && t.subtasks.length > 0) {
+                const done = t.subtasks.filter(s=>s.done).length;
+                const total = t.subtasks.length;
+                const pct = (done/total)*100;
+                progressHtml = `
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
+                    <div class="subtask-text">${done}/${total} subtasks</div>
+                `;
+            }
 
             d.innerHTML = `
+                ${tagsHtml}
                 <div class="task-name">${t.name}</div>
                 
                 <div class="info-row">
-                    <span>📅</span> <span>${dateStr}</span>
+                    ${dateStr ? `<span>📅 ${dateStr}</span>` : ''} 
+                    <span>📌 ${t.status || 'Not Started'}</span>
                 </div>
                 
-                <div class="info-row">
-                    <span>📌</span> <strong>${statusStr}</strong>
-                </div>
+                ${progressHtml}
 
                 <div class="card-footer">
                     <div class="btn-group">
@@ -292,17 +401,53 @@
             document.getElementById('list-'+t.priority).appendChild(d);
         }
 
+        function renderArchiveTask(t) {
+            const d = document.createElement('div');
+            d.className = `card card-${t.priority}`;
+            d.style.opacity = "0.7";
+            d.innerHTML = `<div class="task-name">${t.name}</div><div class="info-row">Archived</div>
+            <div class="card-footer"><button class="btn-header" onclick="unarchive('${t.id}')">Restore</button></div>`;
+            document.getElementById('archive-list').appendChild(d);
+        }
+
+        // --- Subtask Logic in Modal ---
+        function addSubtaskInput(text='', done=false) {
+            const div = document.createElement('div');
+            div.className = 'subtask-input-group';
+            div.innerHTML = `
+                <input type="checkbox" class="subtask-check" ${done?'checked':''}>
+                <input type="text" class="subtask-val" value="${text}" placeholder="Subtask...">
+                <button onclick="this.parentElement.remove()" style="color:red;border:none;background:none;cursor:pointer">×</button>
+            `;
+            document.getElementById('subtaskList').appendChild(div);
+        }
+
         function saveTask(){
             const id=document.getElementById('taskId').value;
             const n=document.getElementById('taskName').value;
             if(!n) return;
+
+            // Collect Tags
+            const tagStr = document.getElementById('taskTags').value;
+            const tags = tagStr ? tagStr.split(',').map(s=>s.trim()).filter(s=>s) : [];
+
+            // Collect Subtasks
+            const subEls = document.querySelectorAll('.subtask-input-group');
+            const subtasks = [];
+            subEls.forEach(el => {
+                const val = el.querySelector('.subtask-val').value;
+                if(val) subtasks.push({ text: val, done: el.querySelector('.subtask-check').checked });
+            });
 
             const data = { 
                 uid: currentUser.uid, 
                 name: n, 
                 dueDate: document.getElementById('taskDate').value,
                 priority: document.getElementById('taskPriority').value,
-                status: document.getElementById('taskStatus').value // New Status Field
+                status: document.getElementById('taskStatus').value,
+                tags: tags,
+                subtasks: subtasks,
+                archived: false
             };
 
             if(id) db.collection('tasks').doc(id).update(data);
@@ -314,16 +459,33 @@
             closeModal();
         }
 
-        function delTask(id){ if(confirm('Delete?')) db.collection('tasks').doc(id).delete(); }
+        function delTask(id){ if(confirm('Delete permanently?')) db.collection('tasks').doc(id).delete(); }
         function toggle(id,s){ db.collection('tasks').doc(id).update({completed:s}); }
         
+        // 5. Archive Logic
+        function archiveCurrentTask() {
+            const id = document.getElementById('taskId').value;
+            if(id) { db.collection('tasks').doc(id).update({archived:true}); closeModal(); }
+        }
+        function unarchive(id) { db.collection('tasks').doc(id).update({archived:false}); }
+        function toggleArchiveView() {
+            const el = document.getElementById('archive-screen');
+            el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
+        }
+
         function openModal(t=null){
             document.getElementById('taskId').value=t?t.id:'';
             document.getElementById('taskName').value=t?t.name:'';
             document.getElementById('taskDate').value=t?t.dueDate:'';
             document.getElementById('taskPriority').value=t?t.priority:'high';
             document.getElementById('taskStatus').value=t?t.status:'Not Started';
+            document.getElementById('taskTags').value=t && t.tags ? t.tags.join(', ') : '';
             
+            const sl = document.getElementById('subtaskList');
+            sl.innerHTML = '';
+            if(t && t.subtasks) t.subtasks.forEach(s => addSubtaskInput(s.text, s.done));
+            else if(!t) addSubtaskInput(); // Add one empty by default for new tasks
+
             document.getElementById('taskModal').style.display='flex';
             if(!t) setTimeout(()=>document.getElementById('taskName').focus(),100);
         }
